@@ -307,6 +307,200 @@
             const blob = new Blob([csv], { type: 'text/csv' }), url = window.URL.createObjectURL(blob), a = document.createElement('a');
             a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); a.click();
         }
+    <script>
+        const SUPABASE_URL = "https://vcldtmwrxyntwrowlorsa.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let db = { registrosDiarios: [], mantenimientos: [] };
+        let usuarioActual = null;
+
+        window.onload = async () => {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) { usuarioActual = session.user; mostrarApp(); } else { mostrarLogin(); }
+            document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
+        };
+
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) { usuarioActual = session.user; mostrarApp(); } else { usuarioActual = null; mostrarLogin(); }
+        });
+
+        function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
+        async function mostrarApp() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); await descargarDatos(); }
+        
+        // --- FUNCIONES DE ACCESO MEJORADAS CON ALERTAS ---
+        async function manejarAuth(e) { 
+            e.preventDefault(); 
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value; 
+            
+            // Mostrar estado de carga en el botón
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Cargando...";
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
+            
+            btn.innerText = textoOriginal;
+
+            if (error) {
+                alert("❌ Error al entrar: " + error.message);
+            } else {
+                showToast("¡Acceso correcto!");
+                mostrarApp(); // Forzar entrada
+            }
+        }
+
+        async function registrarUsuario() { 
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value; 
+
+            if (!email || !password) {
+                return alert("⚠️ Por favor, ingresa un correo y una contraseña.");
+            }
+            if (password.length < 6) {
+                return alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
+            }
+
+            // Cambiar texto para dar feedback visual
+            const btn = document.querySelector('button[type="button"]');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "Registrando...";
+
+            const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
+            
+            btn.innerText = textoOriginal;
+
+            if (error) { 
+                alert("❌ Error en registro: " + error.message); 
+            } else { 
+                alert("✅ ¡Registro exitoso! Tu usuario fue creado en la nube de Supabase. Ahora haz clic en el botón negro de 'Entrar'."); 
+            }
+        }
+
+        async function cerrarSesion() { await supabaseClient.auth.signOut(); }
+
+        // --- RESTO DE LA LÓGICA DE LA APP ---
+        async function descargarDatos() {
+            if (!usuarioActual) return;
+            const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
+            const { data: mants } = await supabaseClient.from('mantenimientos').select('*').order('fecha', { ascending: false });
+            db.registrosDiarios = diarios || []; db.mantenimientos = mants || [];
+            actualizarDashboard(); renderCalendario(); renderListaImprevistos();
+        }
+
+        function renderListaImprevistos() {
+            const tbody = document.getElementById('tabla-imprevistos-body'); tbody.innerHTML = '';
+            const imprevistos = db.registrosDiarios.filter(r => r.imprevisto_valor > 0);
+            if (imprevistos.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">Sin imprevistos</td></tr>'; return; }
+            imprevistos.forEach(imp => {
+                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 font-bold">${imp.fecha}</td><td class="px-4 py-3">${imp.imprevisto_desc}</td><td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(imp.imprevisto_valor)}</td></tr>`;
+            });
+        }
+
+        async function guardarRegistroDiario(e) {
+            e.preventDefault();
+            const check = document.getElementById('check-imprevisto').checked;
+            const nuevo = {
+                fecha: document.getElementById('diario-fecha').value,
+                entrega: parseFloat(document.getElementById('diario-entrega').value) || 0,
+                ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0,
+                imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '',
+                imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0
+            };
+            const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
+            if (!error) { showToast("Sincronizado"); document.getElementById('form-diario').reset(); toggleImprevisto(); await descargarDatos(); } else { alert("Error: " + error.message); }
+        }
+
+        async function guardarMantenimiento(e) {
+            e.preventDefault();
+            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0 };
+            const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
+            if (!error) { showToast("Taller Actualizado"); document.getElementById('form-mantenimiento').reset(); await descargarDatos(); } else { alert("Error: " + error.message); }
+        }
+
+        function toggleImprevisto() { document.getElementById('seccion-imprevisto').classList.toggle('hidden', !document.getElementById('check-imprevisto').checked); }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.className="show"; setTimeout(()=>t.className="",3000); }
+        function formatMoneda(v) { return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(v); }
+
+        function actualizarDashboard() {
+            let brt = 0, ahr = 0, imp = 0, mnt = 0;
+            db.registrosDiarios.forEach(r => { brt += r.entrega; ahr += r.ahorro; imp += r.imprevisto_valor; });
+            db.mantenimientos.forEach(m => mnt += m.valor);
+            document.getElementById('dash-ingreso-bruto').innerText = formatMoneda(brt);
+            document.getElementById('dash-descuentos').innerText = "-" + formatMoneda(imp + mnt);
+            document.getElementById('dash-ingreso-neto').innerText = formatMoneda(brt - (imp + mnt));
+            document.getElementById('dash-ahorro-conductor').innerText = formatMoneda(ahr);
+        }
+
+        // MOTOR DE CALENDARIO BOGOTÁ PLACA 4
+        function getFestivos(anio) {
+            const f = []; const add = (m,d) => f.push(`${anio}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+            const nextMon = (dObj) => { if (dObj.getDay() !== 1) dObj.setDate(dObj.getDate() + (8 - dObj.getDay()) % 7); return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`; };
+            add(1,1); add(5,1); add(7,20); add(8,7); add(12,8); add(12,25);
+            f.push(nextMon(new Date(anio,0,6))); f.push(nextMon(new Date(anio,2,19))); f.push(nextMon(new Date(anio,5,29))); f.push(nextMon(new Date(anio,7,15))); f.push(nextMon(new Date(anio,9,12))); f.push(nextMon(new Date(anio,10,1))); f.push(nextMon(new Date(anio,10,11)));
+            const a=anio%19, b=anio%4, c=anio%7, d=(19*a+24)%30, dias=d+(2*b+4*c+6*d+5)%7, pas=new Date(anio,2,22); pas.setDate(pas.getDate()+dias);
+            const js=new Date(pas); js.setDate(pas.getDate()-3); add(js.getMonth()+1, js.getDate());
+            const vs=new Date(pas); vs.setDate(pas.getDate()-2); add(vs.getMonth()+1, vs.getDate());
+            const asc=new Date(pas); asc.setDate(pas.getDate()+39); f.push(nextMon(asc));
+            const corp=new Date(pas); corp.setDate(pas.getDate()+60); f.push(nextMon(corp));
+            const sc=new Date(pas); sc.setDate(pas.getDate()+68); f.push(nextMon(sc));
+            return f;
+        }
+
+        function tienePyP(fObj, strF) {
+            if (fObj.getDay() === 0 || getFestivos(fObj.getFullYear()).includes(strF)) return false;
+            const ref = new Date(2026,3,1); let diff = Math.round((new Date(fObj).setHours(0,0,0,0)-ref.setHours(0,0,0,0))/86400000);
+            let bDays = 0; if (diff >= 0) { for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } }
+            else { for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } }
+            let idx = bDays % 5; if(idx < 0) idx += 5; return idx === 1;
+        }
+
+        let mAct = new Date().getMonth(), aAct = new Date().getFullYear();
+        function cambiarMes(dir) { mAct += dir; if(mAct>11){mAct=0;aAct++;} if(mAct<0){mAct=11;aAct--;} renderCalendario(); }
+
+        function renderCalendario() {
+            const grid = document.getElementById('calendario-grid'); grid.innerHTML = '';
+            const pDia = new Date(aAct, mAct, 1).getDay(), dMes = new Date(aAct, mAct+1, 0).getDate();
+            const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+            document.getElementById('mes-anio-texto').innerText = `${meses[mAct]} ${aAct}`;
+            for (let i=0; i<pDia; i++) grid.innerHTML += '<div></div>';
+            for (let d=1; d<=dMes; d++) {
+                const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str), reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
+                let cl = "h-12 border rounded flex flex-col items-center justify-center relative text-[10px] font-bold cursor-pointer ";
+                if(p) cl += "bg-red-100 text-red-900 border-red-200"; else if(fes) cl += "bg-green-100 text-green-900 border-green-200"; else cl += "bg-white hover:bg-gray-50";
+                grid.innerHTML += `<div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})"><span>${d}</span>${reg ? '<span class="w-1 h-1 bg-blue-500 rounded-full mt-0.5"></span>':''}</div>`;
+            }
+        }
+
+        function abrirModalDia(f, pyp, fes) {
+            document.getElementById('modal-fecha-titulo').innerText = f;
+            let h = pyp ? '<p class="text-red-600 font-bold">Pico y Placa (Taxi Quieto)</p>' : (fes ? '<p class="text-green-600 font-bold">Festivo Nacional</p>' : '');
+            const r = db.registrosDiarios.filter(x=>x.fecha===f), m = db.mantenimientos.filter(y=>y.fecha===f);
+            r.forEach(x => { h += `<p>• Entrega: ${formatMoneda(x.entrega)}</p>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500">  ↳ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; });
+            m.forEach(y => h += `<p class="text-blue-600">• Taller: ${y.descripcion} (-${formatMoneda(y.valor)})</p>`);
+            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic">Sin registros</p>';
+            document.getElementById('dia-modal').classList.add('active');
+        }
+
+        function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
+        function switchTab(id) { 
+            document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); 
+            document.getElementById(`view-${id}`).classList.add('active'); 
+            document.querySelectorAll('.nav-btn-mobile').forEach(b => b.classList.replace('text-yellow-600', 'text-gray-500'));
+            const bAct = Array.from(document.querySelectorAll('.nav-btn-mobile')).find(b => b.getAttribute('onclick').includes(id));
+            if(bAct) bAct.classList.replace('text-gray-500', 'text-yellow-600');
+        }
+
+        function exportarCSV() {
+            let csv = "Fecha,Tipo,Descripcion,Valor\n";
+            db.registrosDiarios.forEach(r => { csv += `${r.fecha},Entrega,,${r.entrega}\n`; if(r.imprevisto_valor>0) csv += `${r.fecha},Imprevisto,${r.imprevisto_desc},${r.imprevisto_valor}\n`; });
+            db.mantenimientos.forEach(m => { csv += `${m.fecha},Taller,${m.descripcion},${m.valor}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' }), url = window.URL.createObjectURL(blob), a = document.createElement('a');
+            a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); a.click();
+        }
     </script>
 </body>
 </html>
