@@ -58,15 +58,19 @@
                             <span class="block text-[10px] font-normal text-yellow-900 bg-yellow-300 px-1.5 rounded mt-0.5 w-max">Control Vehicular Nube</span>
                         </div>
                     </div>
+                    
                     <div class="hidden md:flex space-x-1 items-center">
                         <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 bg-yellow-500 transition">Resumen</button>
                         <button onclick="switchTab('diario')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Diario</button>
-                        <button onclick="switchTab('imprevistos')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Imprevistos</button>
+                        <button onclick="switchTab('gastos')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Historial Gastos</button>
                         <button onclick="switchTab('mantenimiento')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Taller</button>
                         <button onclick="switchTab('calendario')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Calendario</button>
-                        <button onclick="cerrarSesion()" class="ml-4 bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-2 rounded-md transition" title="Cerrar Sesión"><i class="fa-solid fa-power-off"></i></button>
                     </div>
-                    <button onclick="cerrarSesion()" class="md:hidden bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"><i class="fa-solid fa-power-off"></i></button>
+
+                    <div class="flex space-x-2">
+                        <button onclick="switchTab('ajustes')" class="bg-yellow-600 hover:bg-yellow-700 text-white p-2 md:px-3 rounded-md text-sm transition" title="Configuración"><i class="fa-solid fa-gear"></i></button>
+                        <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-white p-2 md:px-3 rounded-md text-sm transition" title="Cerrar Sesión"><i class="fa-solid fa-power-off"></i></button>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -74,21 +78,24 @@
         <nav class="md:hidden bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] fixed bottom-0 w-full z-40 flex justify-around py-1 text-[10px]">
             <button onclick="switchTab('dashboard')" class="nav-btn-mobile flex flex-col items-center p-2 text-yellow-600"><i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>Resumen</button>
             <button onclick="switchTab('diario')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-book-journal-whills text-lg mb-0.5"></i>Diario</button>
-            <button onclick="switchTab('imprevistos')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-triangle-exclamation text-lg mb-0.5"></i>Extras</button>
+            <button onclick="switchTab('gastos')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-list-check text-lg mb-0.5"></i>Gastos</button>
             <button onclick="switchTab('mantenimiento')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-wrench text-lg mb-0.5"></i>Taller</button>
             <button onclick="switchTab('calendario')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-calendar-days text-lg mb-0.5"></i>Mes</button>
         </nav>
 
-        <div class="max-w-4xl mx-auto p-4 mt-4">
+        <div class="max-w-4xl mx-auto p-4 mt-2">
             
             <div id="view-dashboard" class="tab-content active">
+                
+                <div id="alertas-documentos" class="mb-4 space-y-2"></div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
                         <p class="text-sm text-gray-500 font-semibold uppercase">Ingreso Bruto</p>
                         <p class="text-3xl font-bold text-gray-800 mt-2" id="dash-ingreso-bruto">$0</p>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
-                        <p class="text-sm text-gray-500 font-semibold uppercase">Gastos e Imprevistos</p>
+                        <p class="text-sm text-gray-500 font-semibold uppercase">Gastos (Taller + Extras)</p>
                         <p class="text-xl font-bold text-red-600 mt-2" id="dash-descuentos">-$0</p>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500 md:col-span-2">
@@ -122,11 +129,11 @@
                         <div class="border-t pt-4 mt-4">
                             <label class="flex items-center space-x-3 cursor-pointer">
                                 <input type="checkbox" id="check-imprevisto" onchange="toggleImprevisto()" class="form-checkbox h-5 w-5 text-yellow-500 rounded">
-                                <span class="text-gray-700 font-bold">¿Hubo un imprevisto?</span>
+                                <span class="text-gray-700 font-bold">¿Hubo un imprevisto / gasto menor?</span>
                             </label>
                         </div>
                         <div id="seccion-imprevisto" class="hidden bg-gray-50 p-4 rounded-lg border space-y-3">
-                            <input type="text" id="imprevisto-desc" placeholder="Descripción del suceso" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <input type="text" id="imprevisto-desc" placeholder="Descripción (Ej: Lavada, Pinchazo)" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-400">
                             <input type="number" id="imprevisto-valor" placeholder="Costo del imprevisto ($)" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-400">
                         </div>
                         <button type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-lg transition">Guardar Registro en Nube</button>
@@ -134,19 +141,19 @@
                 </div>
             </div>
 
-            <div id="view-imprevistos" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Historial de Imprevistos</h2>
+            <div id="view-gastos" class="tab-content">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Historial de Gastos (Taller e Imprevistos)</h2>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
                                 <tr>
                                     <th class="px-4 py-3 text-left">Fecha</th>
-                                    <th class="px-4 py-3 text-left">Suceso</th>
+                                    <th class="px-4 py-3 text-left">Detalle y Tipo</th>
                                     <th class="px-4 py-3 text-left">Valor</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-imprevistos-body" class="divide-y divide-gray-200 text-sm">
+                            <tbody id="tabla-gastos-body" class="divide-y divide-gray-200 text-sm">
                                 </tbody>
                         </table>
                     </div>
@@ -154,16 +161,19 @@
             </div>
 
             <div id="view-mantenimiento" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Registro de Taller</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Registro de Taller / Mantenimiento Mayor</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <form id="form-mantenimiento" onsubmit="guardarMantenimiento(event)" class="space-y-4">
+                        <div class="bg-blue-50 text-blue-800 p-3 rounded-md text-xs font-semibold mb-4 border border-blue-200">
+                            <i class="fa-solid fa-circle-info mr-1"></i> Usa esta pestaña para gastos mayores o días donde el taxi estuvo en reparación. Esto se sumará a tus Gastos Históricos.
+                        </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-1">Fecha</label>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Fecha de Ingreso</label>
                             <input type="date" id="mant-fecha" required class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-1">Descripción</label>
-                            <input type="text" id="mant-desc" required placeholder="Ej: Cambio de aceite" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Descripción de la Reparación</label>
+                            <input type="text" id="mant-desc" required placeholder="Ej: Cambio de aceite y filtros" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-1">Costo Total ($)</label>
@@ -176,10 +186,10 @@
 
             <div id="view-calendario" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold uppercase text-gray-800">Calendario P&P (4)</h2>
+                    <h2 class="text-xl font-bold uppercase text-gray-800">Calendario P&P (Placa 4)</h2>
                     <div class="flex space-x-1">
-                        <button onclick="cambiarMes(-1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50">Ant</button>
-                        <button onclick="cambiarMes(1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50">Sig</button>
+                        <button onclick="cambiarMes(-1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50"><i class="fa-solid fa-chevron-left"></i> Ant</button>
+                        <button onclick="cambiarMes(1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50">Sig <i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm p-4">
@@ -190,6 +200,26 @@
                     <div id="calendario-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
                 </div>
             </div>
+
+            <div id="view-ajustes" class="tab-content">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Configuración de Documentos</h2>
+                <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-gray-800">
+                    <p class="text-sm text-gray-600 mb-6">Configura aquí las fechas de vencimiento anual de tus documentos. El sistema te avisará 30 días antes de que se venzan.</p>
+                    
+                    <form onsubmit="guardarConfiguracion(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Vencimiento del SOAT</label>
+                            <input type="date" id="conf-soat" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Vencimiento Revisión Tecnicomecánica</label>
+                            <input type="date" id="conf-tecno" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-4"><i class="fa-solid fa-floppy-disk mr-2"></i> Guardar Fechas</button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -206,7 +236,7 @@
     <script>
         // === CREDENCIALES EXACTAS DE SUPABASE ===
         const SUPABASE_URL = "https://vcldtmwrxynwrowlorsa.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODg1Mjc1MiwiZXhwIjoyMDk0NDI4NzUyfQ.Dzca3wW7VvS9qdrAABobtmM0A0cKfK1Y5hhd1prtu7o";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
         
         let supabaseClient;
         
@@ -232,6 +262,7 @@
                 const hoy = new Date().toISOString().split('T')[0];
                 document.getElementById('diario-fecha').value = hoy;
                 document.getElementById('mant-fecha').value = hoy;
+                cargarConfiguracion(); // Carga las fechas del SOAT y Tecno
             } catch (err) {
                 console.error("Error inicial:", err);
             }
@@ -257,68 +288,105 @@
             document.getElementById('auth-container').classList.add('hidden'); 
             document.getElementById('app-container').classList.remove('hidden'); 
             await descargarDatos(); 
+            revisarDocumentos(); // Analiza SOAT y Tecno al entrar
         }
 
-        // === FUNCIONES DE ACCESO CORREGIDAS Y CON ALERTAS DE ERRORES ===
+        // === FUNCIONES DE ACCESO ===
         async function manejarAuth() { 
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value; 
             
-            if(!email || !password) {
-                return alert("⚠️ Por favor, ingresa tu correo y contraseña.");
-            }
-
+            if(!email || !password) return alert("⚠️ Por favor, ingresa tu correo y contraseña.");
             const btn = document.getElementById('btn-entrar');
             btn.innerText = "Cargando...";
 
             try {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
                 btn.innerText = "Entrar";
-
-                if (error) {
-                    alert("❌ Error al entrar: Revisa que el correo y contraseña sean correctos. (" + error.message + ")");
-                } else {
-                    showToast("¡Acceso correcto a FUZ 764!");
-                    mostrarApp();
-                }
+                if (error) alert("❌ Error al entrar: " + error.message);
+                else { showToast("¡Acceso correcto a FUZ 764!"); mostrarApp(); }
             } catch(e) {
-                btn.innerText = "Entrar";
-                alert("❌ Error de red: No se pudo conectar con la base de datos.");
+                btn.innerText = "Entrar"; alert("❌ Error de red.");
             }
         }
 
         async function registrarUsuario() { 
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value; 
-
-            if (!email || !password) {
-                return alert("⚠️ Debes ingresar un correo y crear una contraseña.");
-            }
-            if (password.length < 6) {
-                return alert("⚠️ La contraseña es muy corta. Debe tener al menos 6 caracteres.");
-            }
+            if (!email || !password) return alert("⚠️ Debes ingresar un correo y contraseña.");
+            if (password.length < 6) return alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
 
             const btn = document.getElementById('btn-registrar');
             btn.innerText = "Registrando...";
-
             try {
                 const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
                 btn.innerText = "Registrar";
-
-                if (error) { 
-                    alert("❌ Error al registrar: " + error.message); 
-                } else { 
-                    alert("✅ ¡Registro exitoso! Tu perfil ha sido creado. Ahora dale al botón negro que dice 'Entrar'."); 
-                }
+                if (error) alert("❌ Error al registrar: " + error.message); 
+                else alert("✅ ¡Registro exitoso! Dale al botón negro que dice 'Entrar'."); 
             } catch(e) {
-                btn.innerText = "Registrar";
-                alert("❌ Error de red: No se pudo conectar.");
+                btn.innerText = "Registrar"; alert("❌ Error de red.");
             }
         }
 
-        async function cerrarSesion() { 
-            await supabaseClient.auth.signOut(); 
+        async function cerrarSesion() { await supabaseClient.auth.signOut(); }
+
+        // === CONFIGURACIÓN Y ALERTAS SOAT/TECNO ===
+        function guardarConfiguracion(e) {
+            e.preventDefault();
+            const soat = document.getElementById('conf-soat').value;
+            const tecno = document.getElementById('conf-tecno').value;
+            
+            // Guardamos localmente para evitar configuraciones complejas de SQL por ahora
+            localStorage.setItem('fuz764_soat', soat);
+            localStorage.setItem('fuz764_tecno', tecno);
+            
+            showToast("Fechas Guardadas");
+            revisarDocumentos();
+            switchTab('dashboard');
         }
+
+        function cargarConfiguracion() {
+            document.getElementById('conf-soat').value = localStorage.getItem('fuz764_soat') || '';
+            document.getElementById('conf-tecno').value = localStorage.getItem('fuz764_tecno') || '';
+        }
+
+        function revisarDocumentos() {
+            const soatStr = localStorage.getItem('fuz764_soat');
+            const tecnoStr = localStorage.getItem('fuz764_tecno');
+            const contenedor = document.getElementById('alertas-documentos');
+            contenedor.innerHTML = '';
+
+            const evaluarFecha = (fechaStr, nombre) => {
+                if (!fechaStr) return; // Si no hay fecha, no muestra nada
+                
+                const hoy = new Date(); hoy.setHours(0,0,0,0);
+                const fechaVenc = new Date(fechaStr + 'T00:00:00'); // Evita errores de zona horaria
+                const diffDias = Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24));
+
+                let claseBase = "p-3 rounded-lg text-sm font-bold flex items-center shadow-sm border-l-4 ";
+                let icono = ""; let texto = "";
+
+                if (diffDias < 0) {
+                    claseBase += "bg-red-50 text-red-800 border-red-600";
+                    icono = '<i class="fa-solid fa-triangle-exclamation text-xl mr-3 text-red-600"></i>';
+                    texto = `${nombre} VENCIDO (Hace ${Math.abs(diffDias)} días)`;
+                } else if (diffDias <= 30) {
+                    claseBase += "bg-orange-50 text-orange-800 border-orange-500";
+                    icono = '<i class="fa-solid fa-clock text-xl mr-3 text-orange-500"></i>';
+                    texto = `${nombre} a punto de vencerse (Faltan ${diffDias} días)`;
+                } else {
+                    claseBase += "bg-green-50 text-green-800 border-green-500";
+                    icono = '<i class="fa-solid fa-circle-check text-xl mr-3 text-green-500"></i>';
+                    texto = `${nombre} Vigente`;
+                }
+
+                contenedor.innerHTML += `<div class="${claseBase}">${icono} <span>${texto}</span></div>`;
+            };
+
+            evaluarFecha(soatStr, "SOAT");
+            evaluarFecha(tecnoStr, "Revisión Tecnicomecánica");
+        }
+
 
         // === GESTIÓN DE DATOS EN NUBE ===
         async function descargarDatos() {
@@ -332,36 +400,65 @@
                 
                 actualizarDashboard(); 
                 renderCalendario(); 
-                renderListaImprevistos();
+                renderListaGastos(); // Nueva función unificada
             } catch(e) {
                 console.error(e);
             }
         }
 
-        function renderListaImprevistos() {
-            const tbody = document.getElementById('tabla-imprevistos-body'); 
+        // NUEVA FUNCIÓN: Unifica Imprevistos y Taller
+        function renderListaGastos() {
+            const tbody = document.getElementById('tabla-gastos-body'); 
             tbody.innerHTML = '';
             
-            const imprevistos = db.registrosDiarios.filter(r => r.imprevisto_valor > 0);
-            
-            if (imprevistos.length === 0) { 
-                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 italic">No tienes imprevistos registrados.</td></tr>'; 
+            // 1. Recolectar Imprevistos
+            let listaUnificada = [];
+            db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => {
+                listaUnificada.push({
+                    fecha: r.fecha,
+                    descripcion: r.imprevisto_desc,
+                    valor: r.imprevisto_valor,
+                    tipo: 'Imprevisto Diario',
+                    claseBadge: 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                });
+            });
+
+            // 2. Recolectar Taller
+            db.mantenimientos.forEach(m => {
+                listaUnificada.push({
+                    fecha: m.fecha,
+                    descripcion: m.descripcion,
+                    valor: m.valor,
+                    tipo: 'Taller / Mecánico',
+                    claseBadge: 'bg-red-100 text-red-800 border-red-200'
+                });
+            });
+
+            // 3. Ordenar por fecha (Más reciente primero)
+            listaUnificada.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            // 4. Dibujar en la tabla
+            if (listaUnificada.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 italic">No hay gastos ni reparaciones registradas.</td></tr>'; 
                 return; 
             }
             
-            imprevistos.forEach(imp => {
+            listaUnificada.forEach(item => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b">
-                        <td class="px-4 py-3 font-bold text-gray-700">${imp.fecha}</td>
-                        <td class="px-4 py-3 text-gray-600">${imp.imprevisto_desc}</td>
-                        <td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(imp.imprevisto_valor)}</td>
+                        <td class="px-4 py-3 font-bold text-gray-700 whitespace-nowrap">${item.fecha}</td>
+                        <td class="px-4 py-3 text-gray-700">
+                            <span class="block">${item.descripcion}</span>
+                            <span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${item.claseBadge}">${item.tipo}</span>
+                        </td>
+                        <td class="px-4 py-3 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(item.valor)}</td>
                     </tr>
                 `;
             });
         }
 
         async function guardarRegistroDiario(e) {
-            e.preventDefault(); // Detiene la recarga del formulario
+            e.preventDefault(); 
             const check = document.getElementById('check-imprevisto').checked;
             
             const nuevo = {
@@ -373,21 +470,17 @@
             };
 
             const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
-            
             if (!error) { 
                 showToast("Dato subido a la nube"); 
                 document.getElementById('form-diario').reset(); 
-                // Restablecer fecha a hoy tras guardar
                 document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0];
                 toggleImprevisto(); 
                 await descargarDatos(); 
-            } else { 
-                alert("❌ Falló la subida: " + error.message); 
-            }
+            } else { alert("❌ Falló la subida: " + error.message); }
         }
 
         async function guardarMantenimiento(e) {
-            e.preventDefault(); // Detiene la recarga
+            e.preventDefault(); 
             const nuevo = { 
                 fecha: document.getElementById('mant-fecha').value, 
                 descripcion: document.getElementById('mant-desc').value, 
@@ -395,15 +488,12 @@
             };
 
             const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
-            
             if (!error) { 
                 showToast("Taller Actualizado"); 
                 document.getElementById('form-mantenimiento').reset(); 
                 document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
                 await descargarDatos(); 
-            } else { 
-                alert("❌ Falló la subida: " + error.message); 
-            }
+            } else { alert("❌ Falló la subida: " + error.message); }
         }
 
         function toggleImprevisto() { 
@@ -415,8 +505,7 @@
 
         function showToast(m) { 
             const t = document.getElementById('toast'); 
-            t.innerText = m; 
-            t.className = "show"; 
+            t.innerText = m; t.className = "show"; 
             setTimeout(() => t.className = t.className.replace("show", ""), 3000); 
         }
 
@@ -453,44 +542,32 @@
             return f;
         }
 
-        // Lógica Exclusiva Placa Terminada en 4
         function tienePyP(fObj, strF) {
             if (fObj.getDay() === 0 || getFestivos(fObj.getFullYear()).includes(strF)) return false;
-            
             const ref = new Date(2026,3,1); 
             let diff = Math.round((new Date(fObj).setHours(0,0,0,0)-ref.setHours(0,0,0,0))/86400000);
             let bDays = 0; 
             
-            if (diff >= 0) { 
-                for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } 
-            } else { 
-                for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } 
-            }
+            if (diff >= 0) { for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } } 
+            else { for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } }
             
-            let idx = bDays % 5; 
-            if(idx < 0) idx += 5; 
-            return idx === 1; // Índice 1 pertenece a placas 3 y 4
+            let idx = bDays % 5; if(idx < 0) idx += 5; return idx === 1; // Placas 3 y 4
         }
 
         let mAct = new Date().getMonth(), aAct = new Date().getFullYear();
         
         function cambiarMes(dir) { 
             mAct += dir; 
-            if(mAct>11){mAct=0;aAct++;} 
-            if(mAct<0){mAct=11;aAct--;} 
+            if(mAct>11){mAct=0;aAct++;} if(mAct<0){mAct=11;aAct--;} 
             renderCalendario(); 
         }
 
         function renderCalendario() {
-            const grid = document.getElementById('calendario-grid'); 
-            grid.innerHTML = '';
-            
-            const pDia = new Date(aAct, mAct, 1).getDay();
-            const dMes = new Date(aAct, mAct+1, 0).getDate();
+            const grid = document.getElementById('calendario-grid'); grid.innerHTML = '';
+            const pDia = new Date(aAct, mAct, 1).getDay(), dMes = new Date(aAct, mAct+1, 0).getDate();
             const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
             
             document.getElementById('mes-anio-texto').innerText = `${meses[mAct]} ${aAct}`;
-            
             for (let i=0; i<pDia; i++) grid.innerHTML += '<div></div>';
             
             for (let d=1; d<=dMes; d++) {
@@ -501,17 +578,22 @@
                 const fes = getFestivos(aAct).includes(str);
                 const reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
                 
-                let cl = "h-14 border rounded-lg flex flex-col items-center justify-center relative text-xs font-bold cursor-pointer transition ";
+                let cl = "h-14 md:h-16 border rounded-lg flex flex-col items-center justify-center relative cursor-pointer transition ";
                 
-                if(p) cl += "bg-red-100 text-red-900 border-red-300 shadow-sm"; 
-                else if(fes) cl += "bg-green-100 text-green-900 border-green-300"; 
+                if(p) cl += "bg-red-50 border-red-300 shadow-sm"; 
+                else if(fes) cl += "bg-green-50 text-green-900 border-green-300"; 
                 else if(f.getDay() === 0) cl += "bg-orange-50 text-orange-800 border-orange-200";
                 else cl += "bg-white hover:bg-gray-50 border-gray-200";
                 
+                // Texto especial para Pico y Placa
+                let textoPyP = p ? '<span class="text-[9px] md:text-[10px] mt-0.5 font-black text-red-700 leading-tight">P&P</span>' : '';
+                let dotReg = reg ? '<span class="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>' : '';
+
                 grid.innerHTML += `
                     <div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})">
-                        <span>${d}</span>
-                        ${reg ? '<span class="w-2 h-2 bg-blue-500 rounded-full mt-1"></span>':''}
+                        <span class="text-sm md:text-base font-bold text-gray-800">${d}</span>
+                        ${textoPyP}
+                        ${dotReg}
                     </div>`;
             }
         }
@@ -529,13 +611,13 @@
             r.forEach(x => { 
                 h += `<p class="border-b pb-1 mt-2"><strong>Entrega:</strong> ${formatMoneda(x.entrega)} <br> <span class="text-gray-500 text-xs">Ahorro: ${formatMoneda(x.ahorro)}</span></p>`; 
                 if(x.imprevisto_valor > 0) {
-                    h += `<p class="text-red-500 mt-1 font-semibold">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`;
+                    h += `<p class="text-yellow-700 mt-1 font-semibold text-xs bg-yellow-50 p-1 rounded">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`;
                 }
             });
             
             m.forEach(y => {
-                h += `<div class="bg-gray-100 p-2 rounded mt-2 border-l-2 border-gray-500">
-                        <p class="font-bold text-gray-700">Taller: ${y.descripcion}</p>
+                h += `<div class="bg-red-50 p-2 rounded mt-2 border-l-2 border-red-500 text-xs">
+                        <p class="font-bold text-red-800"><i class="fa-solid fa-wrench"></i> Taller: ${y.descripcion}</p>
                         <p class="text-red-600 font-bold">-${formatMoneda(y.valor)}</p>
                       </div>`;
             });
@@ -544,53 +626,38 @@
             document.getElementById('dia-modal').classList.add('active');
         }
 
-        function cerrarModal() { 
-            document.getElementById('dia-modal').classList.remove('active'); 
-        }
+        function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
 
         function switchTab(id) { 
             document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active')); 
             document.getElementById(`view-${id}`).classList.add('active'); 
             
-            // Lógica Botones PC
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-yellow-500'));
             if(event && event.currentTarget.classList.contains('nav-btn')){
                 event.currentTarget.classList.add('bg-yellow-500');
             }
 
-            // Lógica Botones Celular
             document.querySelectorAll('.nav-btn-mobile').forEach(b => b.classList.replace('text-yellow-600', 'text-gray-500'));
             const bAct = Array.from(document.querySelectorAll('.nav-btn-mobile')).find(b => b.getAttribute('onclick').includes(id));
             if(bAct) bAct.classList.replace('text-gray-500', 'text-yellow-600');
         }
 
         function exportarCSV() {
-            // Se usa BOM (\uFEFF) para que Excel lea las tildes correctamente
             let csv = "\uFEFFFecha,Tipo de Movimiento,Descripción,Valor en Pesos\n";
-            
             db.registrosDiarios.forEach(r => { 
                 csv += `${r.fecha},Entrega Diaria,Ingreso Bruto,${r.entrega}\n`; 
                 csv += `${r.fecha},Ahorro Conductor,Fondo,${r.ahorro}\n`; 
-                if(r.imprevisto_valor > 0) {
-                    // Reemplazar comas en la descripción para no romper el CSV
-                    let descLimpia = r.imprevisto_desc.replace(/,/g, " ");
-                    csv += `${r.fecha},Gasto Extra / Imprevisto,${descLimpia},-${r.imprevisto_valor}\n`; 
-                }
+                if(r.imprevisto_valor > 0) csv += `${r.fecha},Imprevisto Diario,${r.imprevisto_desc.replace(/,/g, " ")},-${r.imprevisto_valor}\n`; 
             });
-            
             db.mantenimientos.forEach(m => { 
-                let descLimpia = m.descripcion.replace(/,/g, " ");
-                csv += `${m.fecha},Gasto Taller,${descLimpia},-${m.valor}\n`; 
+                csv += `${m.fecha},Taller / Reparación,${m.descripcion.replace(/,/g, " ")},-${m.valor}\n`; 
             });
             
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.setAttribute('href', url); 
-            a.setAttribute('download', 'FUZ_764_Reporte_Financiero.csv'); 
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); 
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
     </script>
 </body>
