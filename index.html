@@ -10,7 +10,8 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out;}
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal.active { display: flex; align-items: center; justify-content: center; }
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 100; left: 50%; bottom: 30px; transform: translateX(-50%); }
@@ -28,20 +29,21 @@
                 <h2 class="text-2xl font-bold text-gray-900 uppercase">FUZ 764 - Acceso</h2>
                 <p class="text-sm text-gray-500 mt-1">Gestión Financiera en la Nube</p>
             </div>
-            <form id="auth-form" onsubmit="manejarAuth(event)" class="space-y-4">
+            
+            <div id="auth-form" class="space-y-4">
                 <div>
                     <label class="block text-gray-700 text-sm font-semibold mb-1">Correo Electrónico</label>
-                    <input type="email" id="auth-email" required placeholder="correo@ejemplo.com" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    <input type="email" id="auth-email" placeholder="correo@ejemplo.com" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-1">Contraseña</label>
-                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    <label class="block text-gray-700 text-sm font-semibold mb-1">Contraseña (Mínimo 6 caracteres)</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                 </div>
                 <div class="flex space-x-2 pt-2">
-                    <button type="submit" class="w-1/2 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2.5 rounded-lg transition">Entrar</button>
-                    <button type="button" onclick="registrarUsuario()" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2.5 rounded-lg transition">Registrar</button>
+                    <button type="button" id="btn-entrar" onclick="manejarAuth()" class="w-1/2 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2.5 rounded-lg transition">Entrar</button>
+                    <button type="button" id="btn-registrar" onclick="registrarUsuario()" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2.5 rounded-lg transition">Registrar</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -53,7 +55,7 @@
                         <i class="fa-solid fa-taxi mr-2 text-2xl"></i>
                         <div>
                             FUZ 764
-                            <span class="block text-[10px] font-normal text-yellow-900 bg-yellow-300 px-1.5 rounded mt-0.5 w-max">Control Vehicular</span>
+                            <span class="block text-[10px] font-normal text-yellow-900 bg-yellow-300 px-1.5 rounded mt-0.5 w-max">Control Vehicular Nube</span>
                         </div>
                     </div>
                     <div class="hidden md:flex space-x-1 items-center">
@@ -62,7 +64,7 @@
                         <button onclick="switchTab('imprevistos')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Imprevistos</button>
                         <button onclick="switchTab('mantenimiento')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Taller</button>
                         <button onclick="switchTab('calendario')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Calendario</button>
-                        <button onclick="cerrarSesion()" class="ml-4 bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-2 rounded-md transition"><i class="fa-solid fa-power-off"></i></button>
+                        <button onclick="cerrarSesion()" class="ml-4 bg-red-600 hover:bg-red-700 text-white text-xs px-2.5 py-2 rounded-md transition" title="Cerrar Sesión"><i class="fa-solid fa-power-off"></i></button>
                     </div>
                     <button onclick="cerrarSesion()" class="md:hidden bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"><i class="fa-solid fa-power-off"></i></button>
                 </div>
@@ -72,12 +74,13 @@
         <nav class="md:hidden bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] fixed bottom-0 w-full z-40 flex justify-around py-1 text-[10px]">
             <button onclick="switchTab('dashboard')" class="nav-btn-mobile flex flex-col items-center p-2 text-yellow-600"><i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>Resumen</button>
             <button onclick="switchTab('diario')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-book-journal-whills text-lg mb-0.5"></i>Diario</button>
-            <button onclick="switchTab('imprevistos')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-triangle-exclamation text-lg mb-0.5"></i>Imprevistos</button>
+            <button onclick="switchTab('imprevistos')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-triangle-exclamation text-lg mb-0.5"></i>Extras</button>
             <button onclick="switchTab('mantenimiento')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-wrench text-lg mb-0.5"></i>Taller</button>
             <button onclick="switchTab('calendario')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-calendar-days text-lg mb-0.5"></i>Mes</button>
         </nav>
 
         <div class="max-w-4xl mx-auto p-4 mt-4">
+            
             <div id="view-dashboard" class="tab-content active">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
@@ -97,258 +100,190 @@
                         <p class="text-3xl font-bold text-yellow-900 mt-2" id="dash-ahorro-conductor">$0</p>
                     </div>
                 </div>
-                <button onclick="exportarCSV()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow-lg flex justify-center items-center"><i class="fa-solid fa-file-csv mr-2"></i> Exportar Datos</button>
+                <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg flex justify-center items-center transition"><i class="fa-solid fa-file-csv mr-2 text-xl"></i> Exportar Datos</button>
             </div>
 
             <div id="view-diario" class="tab-content">
-                <h2 class="text-xl font-bold mb-4">Registro Diario</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Registro Diario</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <form id="form-diario" onsubmit="guardarRegistroDiario(event)" class="space-y-4">
-                        <input type="date" id="diario-fecha" required class="w-full border rounded-lg py-2 px-3">
-                        <input type="number" id="diario-entrega" required placeholder="Entrega Diaria ($)" class="w-full border rounded-lg py-2 px-3">
-                        <input type="number" id="diario-ahorro" required placeholder="Ahorro Conductor ($)" class="w-full border rounded-lg py-2 px-3">
-                        <label class="flex items-center space-x-3 cursor-pointer"><input type="checkbox" id="check-imprevisto" onchange="toggleImprevisto()" class="form-checkbox h-5 w-5 text-yellow-500"><span>¿Hubo imprevistos?</span></label>
-                        <div id="seccion-imprevisto" class="hidden bg-gray-50 p-4 rounded-lg border space-y-2">
-                            <input type="text" id="imprevisto-desc" placeholder="Descripción del suceso" class="w-full border rounded-lg py-2 px-3">
-                            <input type="number" id="imprevisto-valor" placeholder="Costo del imprevisto ($)" class="w-full border rounded-lg py-2 px-3">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Fecha</label>
+                            <input type="date" id="diario-fecha" required class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>
-                        <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg">Guardar Registro</button>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Entrega Diaria ($)</label>
+                            <input type="number" id="diario-entrega" required placeholder="Ej: 80000" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Ahorro Conductor ($)</label>
+                            <input type="number" id="diario-ahorro" required placeholder="Ej: 20000" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <div class="border-t pt-4 mt-4">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" id="check-imprevisto" onchange="toggleImprevisto()" class="form-checkbox h-5 w-5 text-yellow-500 rounded">
+                                <span class="text-gray-700 font-bold">¿Hubo un imprevisto?</span>
+                            </label>
+                        </div>
+                        <div id="seccion-imprevisto" class="hidden bg-gray-50 p-4 rounded-lg border space-y-3">
+                            <input type="text" id="imprevisto-desc" placeholder="Descripción del suceso" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <input type="number" id="imprevisto-valor" placeholder="Costo del imprevisto ($)" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-lg transition">Guardar Registro en Nube</button>
                     </form>
                 </div>
             </div>
 
             <div id="view-imprevistos" class="tab-content">
-                <h2 class="text-xl font-bold mb-4">Historial de Imprevistos</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Historial de Imprevistos</h2>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
-                            <tr><th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Suceso</th><th class="px-4 py-3 text-left">Valor</th></tr>
-                        </thead>
-                        <tbody id="tabla-imprevistos-body" class="divide-y divide-gray-200 text-sm"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Fecha</th>
+                                    <th class="px-4 py-3 text-left">Suceso</th>
+                                    <th class="px-4 py-3 text-left">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-imprevistos-body" class="divide-y divide-gray-200 text-sm">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div id="view-mantenimiento" class="tab-content">
-                <h2 class="text-xl font-bold mb-4">Registro de Taller</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Registro de Taller</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <form id="form-mantenimiento" onsubmit="guardarMantenimiento(event)" class="space-y-4">
-                        <input type="date" id="mant-fecha" required class="w-full border rounded-lg py-2 px-3">
-                        <input type="text" id="mant-desc" required placeholder="Descripción del arreglo" class="w-full border rounded-lg py-2 px-3">
-                        <input type="number" id="mant-valor" required placeholder="Costo total ($)" class="w-full border rounded-lg py-2 px-3">
-                        <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 rounded-lg">Guardar en Taller</button>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Fecha</label>
+                            <input type="date" id="mant-fecha" required class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Descripción</label>
+                            <input type="text" id="mant-desc" required placeholder="Ej: Cambio de aceite" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-1">Costo Total ($)</label>
+                            <input type="number" id="mant-valor" required placeholder="Ej: 150000" class="w-full border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        </div>
+                        <button type="submit" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-lg transition">Guardar Mantenimiento</button>
                     </form>
                 </div>
             </div>
 
             <div id="view-calendario" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold uppercase">Calendario P&P 4</h2>
+                    <h2 class="text-xl font-bold uppercase text-gray-800">Calendario P&P (4)</h2>
                     <div class="flex space-x-1">
-                        <button onclick="cambiarMes(-1)" class="bg-white border p-2 rounded shadow text-xs">Ant</button>
-                        <button onclick="cambiarMes(1)" class="bg-white border p-2 rounded shadow text-xs">Sig</button>
+                        <button onclick="cambiarMes(-1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50">Ant</button>
+                        <button onclick="cambiarMes(1)" class="bg-white border px-3 py-1.5 rounded shadow text-xs font-bold hover:bg-gray-50">Sig</button>
                     </div>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm p-4">
-                    <h3 id="mes-anio-texto" class="text-center font-bold mb-4 uppercase"></h3>
-                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-1">
+                    <h3 id="mes-anio-texto" class="text-center font-bold mb-4 uppercase text-gray-700"></h3>
+                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] md:text-xs font-bold text-gray-400 mb-1">
                         <div>DOM</div><div>LUN</div><div>MAR</div><div>MIE</div><div>JUE</div><div>VIE</div><div>SAB</div>
                     </div>
-                    <div id="calendario-grid" class="grid grid-cols-7 gap-1"></div>
+                    <div id="calendario-grid" class="grid grid-cols-7 gap-1 md:gap-2"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="dia-modal" class="modal"><div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4"><h3 id="modal-fecha-titulo" class="font-bold border-b pb-2 mb-4 uppercase"></h3><div id="modal-contenido" class="text-sm space-y-2"></div><button onclick="cerrarModal()" class="mt-6 w-full bg-gray-200 font-bold py-2 rounded">Cerrar</button></div></div>
+    <div id="dia-modal" class="modal">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 id="modal-fecha-titulo" class="font-bold border-b pb-2 mb-4 uppercase text-gray-800"></h3>
+            <div id="modal-contenido" class="text-sm space-y-2 max-h-60 overflow-y-auto"></div>
+            <button onclick="cerrarModal()" class="mt-6 w-full bg-gray-200 hover:bg-gray-300 font-bold py-2.5 rounded transition">Cerrar</button>
+        </div>
+    </div>
+    
     <div id="toast">Operación exitosa</div>
 
     <script>
+        // === CREDENCIALES EXACTAS DE SUPABASE ===
         const SUPABASE_URL = "https://vcldtmwrxyntwrowlorsa.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
-        const supabaseClient = supabase.createClient(https://vcldtmwrxyntwrowlorsa.supabase.co, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg);
-
-        let db = { registrosDiarios: [], mantenimientos: [] };
-        let usuarioActual = null;
-
-        window.onload = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) { usuarioActual = session.user; mostrarApp(); } else { mostrarLogin(); }
-            document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0];
-            document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
-        };
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) { usuarioActual = session.user; mostrarApp(); } else { usuarioActual = null; mostrarLogin(); }
-        });
-
-        function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
-        async function mostrarApp() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); await descargarDatos(); }
-        async function manejarAuth(e) { e.preventDefault(); const email = document.getElementById('auth-email').value, password = document.getElementById('auth-password').value; const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) alert(error.message); }
-        async function registrarUsuario() { const email = document.getElementById('auth-email').value, password = document.getElementById('auth-password').value; const { error } = await supabaseClient.auth.signUp({ email, password }); if (error) alert(error.message); else alert("Confirma tu correo o intenta ingresar."); }
-        async function cerrarSesion() { await supabaseClient.auth.signOut(); }
-
-        async function descargarDatos() {
-            if (!usuarioActual) return;
-            const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
-            const { data: mants } = await supabaseClient.from('mantenimientos').select('*').order('fecha', { ascending: false });
-            db.registrosDiarios = diarios || []; db.mantenimientos = mants || [];
-            actualizarDashboard(); renderCalendario(); renderListaImprevistos();
-        }
-
-        function renderListaImprevistos() {
-            const tbody = document.getElementById('tabla-imprevistos-body'); tbody.innerHTML = '';
-            const imprevistos = db.registrosDiarios.filter(r => r.imprevisto_valor > 0);
-            if (imprevistos.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">Sin imprevistos</td></tr>'; return; }
-            imprevistos.forEach(imp => {
-                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 font-bold">${imp.fecha}</td><td class="px-4 py-3">${imp.imprevisto_desc}</td><td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(imp.imprevisto_valor)}</td></tr>`;
-            });
-        }
-
-        async function guardarRegistroDiario(e) {
-            e.preventDefault();
-            const check = document.getElementById('check-imprevisto').checked;
-            const nuevo = {
-                fecha: document.getElementById('diario-fecha').value,
-                entrega: parseFloat(document.getElementById('diario-entrega').value) || 0,
-                ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0,
-                imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '',
-                imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0
-            };
-            const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
-            if (!error) { showToast("Sincronizado"); document.getElementById('form-diario').reset(); toggleImprevisto(); await descargarDatos(); }
-        }
-
-        async function guardarMantenimiento(e) {
-            e.preventDefault();
-            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0 };
-            const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
-            if (!error) { showToast("Taller Actualizado"); document.getElementById('form-mantenimiento').reset(); await descargarDatos(); }
-        }
-
-        function toggleImprevisto() { document.getElementById('seccion-imprevisto').classList.toggle('hidden', !document.getElementById('check-imprevisto').checked); }
-        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.className="show"; setTimeout(()=>t.className="",3000); }
-        function formatMoneda(v) { return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(v); }
-
-        function actualizarDashboard() {
-            let brt = 0, ahr = 0, imp = 0, mnt = 0;
-            db.registrosDiarios.forEach(r => { brt += r.entrega; ahr += r.ahorro; imp += r.imprevisto_valor; });
-            db.mantenimientos.forEach(m => mnt += m.valor);
-            document.getElementById('dash-ingreso-bruto').innerText = formatMoneda(brt);
-            document.getElementById('dash-descuentos').innerText = "-" + formatMoneda(imp + mnt);
-            document.getElementById('dash-ingreso-neto').innerText = formatMoneda(brt - (imp + mnt));
-            document.getElementById('dash-ahorro-conductor').innerText = formatMoneda(ahr);
-        }
-
-        // MOTOR DE CALENDARIO BOGOTÁ PLACA 4
-        function getFestivos(anio) {
-            const f = []; const add = (m,d) => f.push(`${anio}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
-            const nextMon = (dObj) => { if (dObj.getDay() !== 1) dObj.setDate(dObj.getDate() + (8 - dObj.getDay()) % 7); return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`; };
-            add(1,1); add(5,1); add(7,20); add(8,7); add(12,8); add(12,25);
-            f.push(nextMon(new Date(anio,0,6))); f.push(nextMon(new Date(anio,2,19))); f.push(nextMon(new Date(anio,5,29))); f.push(nextMon(new Date(anio,7,15))); f.push(nextMon(new Date(anio,9,12))); f.push(nextMon(new Date(anio,10,1))); f.push(nextMon(new Date(anio,10,11)));
-            const a=anio%19, b=anio%4, c=anio%7, d=(19*a+24)%30, dias=d+(2*b+4*c+6*d+5)%7, pas=new Date(anio,2,22); pas.setDate(pas.getDate()+dias);
-            const js=new Date(pas); js.setDate(pas.getDate()-3); add(js.getMonth()+1, js.getDate());
-            const vs=new Date(pas); vs.setDate(pas.getDate()-2); add(vs.getMonth()+1, vs.getDate());
-            const asc=new Date(pas); asc.setDate(pas.getDate()+39); f.push(nextMon(asc));
-            const corp=new Date(pas); corp.setDate(pas.getDate()+60); f.push(nextMon(corp));
-            const sc=new Date(pas); sc.setDate(pas.getDate()+68); f.push(nextMon(sc));
-            return f;
-        }
-
-        function tienePyP(fObj, strF) {
-            if (fObj.getDay() === 0 || getFestivos(fObj.getFullYear()).includes(strF)) return false;
-            const ref = new Date(2026,3,1); let diff = Math.round((new Date(fObj).setHours(0,0,0,0)-ref.setHours(0,0,0,0))/86400000);
-            let bDays = 0; if (diff >= 0) { for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } }
-            else { for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } }
-            let idx = bDays % 5; if(idx < 0) idx += 5; return idx === 1;
-        }
-
-        let mAct = new Date().getMonth(), aAct = new Date().getFullYear();
-        function cambiarMes(dir) { mAct += dir; if(mAct>11){mAct=0;aAct++;} if(mAct<0){mAct=11;aAct--;} renderCalendario(); }
-
-        function renderCalendario() {
-            const grid = document.getElementById('calendario-grid'); grid.innerHTML = '';
-            const pDia = new Date(aAct, mAct, 1).getDay(), dMes = new Date(aAct, mAct+1, 0).getDate();
-            const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-            document.getElementById('mes-anio-texto').innerText = `${meses[mAct]} ${aAct}`;
-            for (let i=0; i<pDia; i++) grid.innerHTML += '<div></div>';
-            for (let d=1; d<=dMes; d++) {
-                const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str), reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
-                let cl = "h-12 border rounded flex flex-col items-center justify-center relative text-[10px] font-bold cursor-pointer ";
-                if(p) cl += "bg-red-100 text-red-900 border-red-200"; else if(fes) cl += "bg-green-100 text-green-900 border-green-200"; else cl += "bg-white hover:bg-gray-50";
-                grid.innerHTML += `<div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})"><span>${d}</span>${reg ? '<span class="w-1 h-1 bg-blue-500 rounded-full mt-0.5"></span>':''}</div>`;
-            }
-        }
-
-        function abrirModalDia(f, pyp, fes) {
-            document.getElementById('modal-fecha-titulo').innerText = f;
-            let h = pyp ? '<p class="text-red-600 font-bold">Pico y Placa (Taxi Quieto)</p>' : (fes ? '<p class="text-green-600 font-bold">Festivo Nacional</p>' : '');
-            const r = db.registrosDiarios.filter(x=>x.fecha===f), m = db.mantenimientos.filter(y=>y.fecha===f);
-            r.forEach(x => { h += `<p>• Entrega: ${formatMoneda(x.entrega)}</p>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500">  ↳ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; });
-            m.forEach(y => h += `<p class="text-blue-600">• Taller: ${y.descripcion} (-${formatMoneda(y.valor)})</p>`);
-            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic">Sin registros</p>';
-            document.getElementById('dia-modal').classList.add('active');
-        }
-
-        function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
-        function switchTab(id) { 
-            document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); 
-            document.getElementById(`view-${id}`).classList.add('active'); 
-            document.querySelectorAll('.nav-btn-mobile').forEach(b => b.classList.replace('text-yellow-600', 'text-gray-500'));
-            const bAct = Array.from(document.querySelectorAll('.nav-btn-mobile')).find(b => b.getAttribute('onclick').includes(id));
-            if(bAct) bAct.classList.replace('text-gray-500', 'text-yellow-600');
-        }
-
-        function exportarCSV() {
-            let csv = "Fecha,Tipo,Descripcion,Valor\n";
-            db.registrosDiarios.forEach(r => { csv += `${r.fecha},Entrega,,${r.entrega}\n`; if(r.imprevisto_valor>0) csv += `${r.fecha},Imprevisto,${r.imprevisto_desc},${r.imprevisto_valor}\n`; });
-            db.mantenimientos.forEach(m => { csv += `${m.fecha},Taller,${m.descripcion},${m.valor}\n`; });
-            const blob = new Blob([csv], { type: 'text/csv' }), url = window.URL.createObjectURL(blob), a = document.createElement('a');
-            a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); a.click();
-        }
-    <script>
-        const SUPABASE_URL = "https://vcldtmwrxyntwrowlorsa.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let db = { registrosDiarios: [], mantenimientos: [] };
-        let usuarioActual = null;
-
-        window.onload = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) { usuarioActual = session.user; mostrarApp(); } else { mostrarLogin(); }
-            document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0];
-            document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
-        };
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) { usuarioActual = session.user; mostrarApp(); } else { usuarioActual = null; mostrarLogin(); }
-        });
-
-        function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
-        async function mostrarApp() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); await descargarDatos(); }
         
-        // --- FUNCIONES DE ACCESO MEJORADAS CON ALERTAS ---
-        async function manejarAuth(e) { 
-            e.preventDefault(); 
+        let supabaseClient;
+        
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            alert("Error cargando Supabase. Verifica tu conexión a internet.");
+        }
+
+        let db = { registrosDiarios: [], mantenimientos: [] };
+        let usuarioActual = null;
+
+        // VERIFICADOR AL CARGAR LA PÁGINA
+        window.onload = async () => {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) { 
+                    usuarioActual = session.user; 
+                    mostrarApp(); 
+                } else { 
+                    mostrarLogin(); 
+                }
+                const hoy = new Date().toISOString().split('T')[0];
+                document.getElementById('diario-fecha').value = hoy;
+                document.getElementById('mant-fecha').value = hoy;
+            } catch (err) {
+                console.error("Error inicial:", err);
+            }
+        };
+
+        // ESCUCHADOR DE SESIÓN
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) { 
+                usuarioActual = session.user; 
+                mostrarApp(); 
+            } else { 
+                usuarioActual = null; 
+                mostrarLogin(); 
+            }
+        });
+
+        function mostrarLogin() { 
+            document.getElementById('auth-container').classList.remove('hidden'); 
+            document.getElementById('app-container').classList.add('hidden'); 
+        }
+        
+        async function mostrarApp() { 
+            document.getElementById('auth-container').classList.add('hidden'); 
+            document.getElementById('app-container').classList.remove('hidden'); 
+            await descargarDatos(); 
+        }
+
+        // === FUNCIONES DE ACCESO CORREGIDAS Y CON ALERTAS DE ERRORES ===
+        async function manejarAuth() { 
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value; 
             
-            // Mostrar estado de carga en el botón
-            const btn = e.target.querySelector('button[type="submit"]');
-            const textoOriginal = btn.innerText;
+            if(!email || !password) {
+                return alert("⚠️ Por favor, ingresa tu correo y contraseña.");
+            }
+
+            const btn = document.getElementById('btn-entrar');
             btn.innerText = "Cargando...";
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
-            
-            btn.innerText = textoOriginal;
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
+                btn.innerText = "Entrar";
 
-            if (error) {
-                alert("❌ Error al entrar: " + error.message);
-            } else {
-                showToast("¡Acceso correcto!");
-                mostrarApp(); // Forzar entrada
+                if (error) {
+                    alert("❌ Error al entrar: Revisa que el correo y contraseña sean correctos. (" + error.message + ")");
+                } else {
+                    showToast("¡Acceso correcto a FUZ 764!");
+                    mostrarApp();
+                }
+            } catch(e) {
+                btn.innerText = "Entrar";
+                alert("❌ Error de red: No se pudo conectar con la base de datos.");
             }
         }
 
@@ -357,51 +292,78 @@
             const password = document.getElementById('auth-password').value; 
 
             if (!email || !password) {
-                return alert("⚠️ Por favor, ingresa un correo y una contraseña.");
+                return alert("⚠️ Debes ingresar un correo y crear una contraseña.");
             }
             if (password.length < 6) {
-                return alert("⚠️ La contraseña debe tener al menos 6 caracteres.");
+                return alert("⚠️ La contraseña es muy corta. Debe tener al menos 6 caracteres.");
             }
 
-            // Cambiar texto para dar feedback visual
-            const btn = document.querySelector('button[type="button"]');
-            const textoOriginal = btn.innerText;
+            const btn = document.getElementById('btn-registrar');
             btn.innerText = "Registrando...";
 
-            const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
-            
-            btn.innerText = textoOriginal;
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
+                btn.innerText = "Registrar";
 
-            if (error) { 
-                alert("❌ Error en registro: " + error.message); 
-            } else { 
-                alert("✅ ¡Registro exitoso! Tu usuario fue creado en la nube de Supabase. Ahora haz clic en el botón negro de 'Entrar'."); 
+                if (error) { 
+                    alert("❌ Error al registrar: " + error.message); 
+                } else { 
+                    alert("✅ ¡Registro exitoso! Tu perfil ha sido creado. Ahora dale al botón negro que dice 'Entrar'."); 
+                }
+            } catch(e) {
+                btn.innerText = "Registrar";
+                alert("❌ Error de red: No se pudo conectar.");
             }
         }
 
-        async function cerrarSesion() { await supabaseClient.auth.signOut(); }
+        async function cerrarSesion() { 
+            await supabaseClient.auth.signOut(); 
+        }
 
-        // --- RESTO DE LA LÓGICA DE LA APP ---
+        // === GESTIÓN DE DATOS EN NUBE ===
         async function descargarDatos() {
             if (!usuarioActual) return;
-            const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
-            const { data: mants } = await supabaseClient.from('mantenimientos').select('*').order('fecha', { ascending: false });
-            db.registrosDiarios = diarios || []; db.mantenimientos = mants || [];
-            actualizarDashboard(); renderCalendario(); renderListaImprevistos();
+            try {
+                const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
+                const { data: mants } = await supabaseClient.from('mantenimientos').select('*').order('fecha', { ascending: false });
+                
+                db.registrosDiarios = diarios || []; 
+                db.mantenimientos = mants || [];
+                
+                actualizarDashboard(); 
+                renderCalendario(); 
+                renderListaImprevistos();
+            } catch(e) {
+                console.error(e);
+            }
         }
 
         function renderListaImprevistos() {
-            const tbody = document.getElementById('tabla-imprevistos-body'); tbody.innerHTML = '';
+            const tbody = document.getElementById('tabla-imprevistos-body'); 
+            tbody.innerHTML = '';
+            
             const imprevistos = db.registrosDiarios.filter(r => r.imprevisto_valor > 0);
-            if (imprevistos.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">Sin imprevistos</td></tr>'; return; }
+            
+            if (imprevistos.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 italic">No tienes imprevistos registrados.</td></tr>'; 
+                return; 
+            }
+            
             imprevistos.forEach(imp => {
-                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 font-bold">${imp.fecha}</td><td class="px-4 py-3">${imp.imprevisto_desc}</td><td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(imp.imprevisto_valor)}</td></tr>`;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="px-4 py-3 font-bold text-gray-700">${imp.fecha}</td>
+                        <td class="px-4 py-3 text-gray-600">${imp.imprevisto_desc}</td>
+                        <td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(imp.imprevisto_valor)}</td>
+                    </tr>
+                `;
             });
         }
 
         async function guardarRegistroDiario(e) {
-            e.preventDefault();
+            e.preventDefault(); // Detiene la recarga del formulario
             const check = document.getElementById('check-imprevisto').checked;
+            
             const nuevo = {
                 fecha: document.getElementById('diario-fecha').value,
                 entrega: parseFloat(document.getElementById('diario-entrega').value) || 0,
@@ -409,97 +371,226 @@
                 imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '',
                 imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0
             };
+
             const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
-            if (!error) { showToast("Sincronizado"); document.getElementById('form-diario').reset(); toggleImprevisto(); await descargarDatos(); } else { alert("Error: " + error.message); }
+            
+            if (!error) { 
+                showToast("Dato subido a la nube"); 
+                document.getElementById('form-diario').reset(); 
+                // Restablecer fecha a hoy tras guardar
+                document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0];
+                toggleImprevisto(); 
+                await descargarDatos(); 
+            } else { 
+                alert("❌ Falló la subida: " + error.message); 
+            }
         }
 
         async function guardarMantenimiento(e) {
-            e.preventDefault();
-            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0 };
+            e.preventDefault(); // Detiene la recarga
+            const nuevo = { 
+                fecha: document.getElementById('mant-fecha').value, 
+                descripcion: document.getElementById('mant-desc').value, 
+                valor: parseFloat(document.getElementById('mant-valor').value) || 0 
+            };
+
             const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
-            if (!error) { showToast("Taller Actualizado"); document.getElementById('form-mantenimiento').reset(); await descargarDatos(); } else { alert("Error: " + error.message); }
+            
+            if (!error) { 
+                showToast("Taller Actualizado"); 
+                document.getElementById('form-mantenimiento').reset(); 
+                document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
+                await descargarDatos(); 
+            } else { 
+                alert("❌ Falló la subida: " + error.message); 
+            }
         }
 
-        function toggleImprevisto() { document.getElementById('seccion-imprevisto').classList.toggle('hidden', !document.getElementById('check-imprevisto').checked); }
-        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.className="show"; setTimeout(()=>t.className="",3000); }
-        function formatMoneda(v) { return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(v); }
+        function toggleImprevisto() { 
+            const checked = document.getElementById('check-imprevisto').checked;
+            document.getElementById('seccion-imprevisto').classList.toggle('hidden', !checked); 
+            document.getElementById('imprevisto-desc').required = checked;
+            document.getElementById('imprevisto-valor').required = checked;
+        }
+
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            t.innerText = m; 
+            t.className = "show"; 
+            setTimeout(() => t.className = t.className.replace("show", ""), 3000); 
+        }
+
+        function formatMoneda(v) { 
+            return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(v); 
+        }
 
         function actualizarDashboard() {
             let brt = 0, ahr = 0, imp = 0, mnt = 0;
             db.registrosDiarios.forEach(r => { brt += r.entrega; ahr += r.ahorro; imp += r.imprevisto_valor; });
             db.mantenimientos.forEach(m => mnt += m.valor);
+            
             document.getElementById('dash-ingreso-bruto').innerText = formatMoneda(brt);
             document.getElementById('dash-descuentos').innerText = "-" + formatMoneda(imp + mnt);
             document.getElementById('dash-ingreso-neto').innerText = formatMoneda(brt - (imp + mnt));
             document.getElementById('dash-ahorro-conductor').innerText = formatMoneda(ahr);
         }
 
-        // MOTOR DE CALENDARIO BOGOTÁ PLACA 4
+        // === MOTOR DE CALENDARIO Y FESTIVOS ===
         function getFestivos(anio) {
             const f = []; const add = (m,d) => f.push(`${anio}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
             const nextMon = (dObj) => { if (dObj.getDay() !== 1) dObj.setDate(dObj.getDate() + (8 - dObj.getDay()) % 7); return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`; };
+            
             add(1,1); add(5,1); add(7,20); add(8,7); add(12,8); add(12,25);
             f.push(nextMon(new Date(anio,0,6))); f.push(nextMon(new Date(anio,2,19))); f.push(nextMon(new Date(anio,5,29))); f.push(nextMon(new Date(anio,7,15))); f.push(nextMon(new Date(anio,9,12))); f.push(nextMon(new Date(anio,10,1))); f.push(nextMon(new Date(anio,10,11)));
+            
             const a=anio%19, b=anio%4, c=anio%7, d=(19*a+24)%30, dias=d+(2*b+4*c+6*d+5)%7, pas=new Date(anio,2,22); pas.setDate(pas.getDate()+dias);
             const js=new Date(pas); js.setDate(pas.getDate()-3); add(js.getMonth()+1, js.getDate());
             const vs=new Date(pas); vs.setDate(pas.getDate()-2); add(vs.getMonth()+1, vs.getDate());
             const asc=new Date(pas); asc.setDate(pas.getDate()+39); f.push(nextMon(asc));
             const corp=new Date(pas); corp.setDate(pas.getDate()+60); f.push(nextMon(corp));
             const sc=new Date(pas); sc.setDate(pas.getDate()+68); f.push(nextMon(sc));
+            
             return f;
         }
 
+        // Lógica Exclusiva Placa Terminada en 4
         function tienePyP(fObj, strF) {
             if (fObj.getDay() === 0 || getFestivos(fObj.getFullYear()).includes(strF)) return false;
-            const ref = new Date(2026,3,1); let diff = Math.round((new Date(fObj).setHours(0,0,0,0)-ref.setHours(0,0,0,0))/86400000);
-            let bDays = 0; if (diff >= 0) { for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } }
-            else { for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } }
-            let idx = bDays % 5; if(idx < 0) idx += 5; return idx === 1;
+            
+            const ref = new Date(2026,3,1); 
+            let diff = Math.round((new Date(fObj).setHours(0,0,0,0)-ref.setHours(0,0,0,0))/86400000);
+            let bDays = 0; 
+            
+            if (diff >= 0) { 
+                for(let i=0; i<diff; i++){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays++; } 
+            } else { 
+                for(let i=-1; i>=diff; i--){ let d=new Date(2026,3,1); d.setDate(d.getDate()+i); if(d.getDay()!==0) bDays--; } 
+            }
+            
+            let idx = bDays % 5; 
+            if(idx < 0) idx += 5; 
+            return idx === 1; // Índice 1 pertenece a placas 3 y 4
         }
 
         let mAct = new Date().getMonth(), aAct = new Date().getFullYear();
-        function cambiarMes(dir) { mAct += dir; if(mAct>11){mAct=0;aAct++;} if(mAct<0){mAct=11;aAct--;} renderCalendario(); }
+        
+        function cambiarMes(dir) { 
+            mAct += dir; 
+            if(mAct>11){mAct=0;aAct++;} 
+            if(mAct<0){mAct=11;aAct--;} 
+            renderCalendario(); 
+        }
 
         function renderCalendario() {
-            const grid = document.getElementById('calendario-grid'); grid.innerHTML = '';
-            const pDia = new Date(aAct, mAct, 1).getDay(), dMes = new Date(aAct, mAct+1, 0).getDate();
+            const grid = document.getElementById('calendario-grid'); 
+            grid.innerHTML = '';
+            
+            const pDia = new Date(aAct, mAct, 1).getDay();
+            const dMes = new Date(aAct, mAct+1, 0).getDate();
             const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+            
             document.getElementById('mes-anio-texto').innerText = `${meses[mAct]} ${aAct}`;
+            
             for (let i=0; i<pDia; i++) grid.innerHTML += '<div></div>';
+            
             for (let d=1; d<=dMes; d++) {
-                const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str), reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
-                let cl = "h-12 border rounded flex flex-col items-center justify-center relative text-[10px] font-bold cursor-pointer ";
-                if(p) cl += "bg-red-100 text-red-900 border-red-200"; else if(fes) cl += "bg-green-100 text-green-900 border-green-200"; else cl += "bg-white hover:bg-gray-50";
-                grid.innerHTML += `<div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})"><span>${d}</span>${reg ? '<span class="w-1 h-1 bg-blue-500 rounded-full mt-0.5"></span>':''}</div>`;
+                const f = new Date(aAct, mAct, d);
+                const str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                
+                const p = tienePyP(f, str);
+                const fes = getFestivos(aAct).includes(str);
+                const reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
+                
+                let cl = "h-14 border rounded-lg flex flex-col items-center justify-center relative text-xs font-bold cursor-pointer transition ";
+                
+                if(p) cl += "bg-red-100 text-red-900 border-red-300 shadow-sm"; 
+                else if(fes) cl += "bg-green-100 text-green-900 border-green-300"; 
+                else if(f.getDay() === 0) cl += "bg-orange-50 text-orange-800 border-orange-200";
+                else cl += "bg-white hover:bg-gray-50 border-gray-200";
+                
+                grid.innerHTML += `
+                    <div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})">
+                        <span>${d}</span>
+                        ${reg ? '<span class="w-2 h-2 bg-blue-500 rounded-full mt-1"></span>':''}
+                    </div>`;
             }
         }
 
         function abrirModalDia(f, pyp, fes) {
             document.getElementById('modal-fecha-titulo').innerText = f;
-            let h = pyp ? '<p class="text-red-600 font-bold">Pico y Placa (Taxi Quieto)</p>' : (fes ? '<p class="text-green-600 font-bold">Festivo Nacional</p>' : '');
-            const r = db.registrosDiarios.filter(x=>x.fecha===f), m = db.mantenimientos.filter(y=>y.fecha===f);
-            r.forEach(x => { h += `<p>• Entrega: ${formatMoneda(x.entrega)}</p>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500">  ↳ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; });
-            m.forEach(y => h += `<p class="text-blue-600">• Taller: ${y.descripcion} (-${formatMoneda(y.valor)})</p>`);
-            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic">Sin registros</p>';
+            
+            let h = '';
+            if(pyp) h += '<div class="bg-red-100 text-red-800 p-2 rounded mb-2 text-center text-xs font-bold"><i class="fa-solid fa-ban"></i> Pico y Placa (Taxi Quieto)</div>';
+            if(fes) h += '<div class="bg-green-100 text-green-800 p-2 rounded mb-2 text-center text-xs font-bold"><i class="fa-solid fa-champagne-glasses"></i> Festivo Nacional</div>';
+            
+            const r = db.registrosDiarios.filter(x=>x.fecha===f);
+            const m = db.mantenimientos.filter(y=>y.fecha===f);
+            
+            r.forEach(x => { 
+                h += `<p class="border-b pb-1 mt-2"><strong>Entrega:</strong> ${formatMoneda(x.entrega)} <br> <span class="text-gray-500 text-xs">Ahorro: ${formatMoneda(x.ahorro)}</span></p>`; 
+                if(x.imprevisto_valor > 0) {
+                    h += `<p class="text-red-500 mt-1 font-semibold">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`;
+                }
+            });
+            
+            m.forEach(y => {
+                h += `<div class="bg-gray-100 p-2 rounded mt-2 border-l-2 border-gray-500">
+                        <p class="font-bold text-gray-700">Taller: ${y.descripcion}</p>
+                        <p class="text-red-600 font-bold">-${formatMoneda(y.valor)}</p>
+                      </div>`;
+            });
+            
+            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic text-gray-500 text-center mt-4">Sin registros este día.</p>';
             document.getElementById('dia-modal').classList.add('active');
         }
 
-        function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
+        function cerrarModal() { 
+            document.getElementById('dia-modal').classList.remove('active'); 
+        }
+
         function switchTab(id) { 
-            document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); 
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active')); 
             document.getElementById(`view-${id}`).classList.add('active'); 
+            
+            // Lógica Botones PC
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-yellow-500'));
+            if(event && event.currentTarget.classList.contains('nav-btn')){
+                event.currentTarget.classList.add('bg-yellow-500');
+            }
+
+            // Lógica Botones Celular
             document.querySelectorAll('.nav-btn-mobile').forEach(b => b.classList.replace('text-yellow-600', 'text-gray-500'));
             const bAct = Array.from(document.querySelectorAll('.nav-btn-mobile')).find(b => b.getAttribute('onclick').includes(id));
             if(bAct) bAct.classList.replace('text-gray-500', 'text-yellow-600');
         }
 
         function exportarCSV() {
-            let csv = "Fecha,Tipo,Descripcion,Valor\n";
-            db.registrosDiarios.forEach(r => { csv += `${r.fecha},Entrega,,${r.entrega}\n`; if(r.imprevisto_valor>0) csv += `${r.fecha},Imprevisto,${r.imprevisto_desc},${r.imprevisto_valor}\n`; });
-            db.mantenimientos.forEach(m => { csv += `${m.fecha},Taller,${m.descripcion},${m.valor}\n`; });
-            const blob = new Blob([csv], { type: 'text/csv' }), url = window.URL.createObjectURL(blob), a = document.createElement('a');
-            a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); a.click();
+            // Se usa BOM (\uFEFF) para que Excel lea las tildes correctamente
+            let csv = "\uFEFFFecha,Tipo de Movimiento,Descripción,Valor en Pesos\n";
+            
+            db.registrosDiarios.forEach(r => { 
+                csv += `${r.fecha},Entrega Diaria,Ingreso Bruto,${r.entrega}\n`; 
+                csv += `${r.fecha},Ahorro Conductor,Fondo,${r.ahorro}\n`; 
+                if(r.imprevisto_valor > 0) {
+                    // Reemplazar comas en la descripción para no romper el CSV
+                    let descLimpia = r.imprevisto_desc.replace(/,/g, " ");
+                    csv += `${r.fecha},Gasto Extra / Imprevisto,${descLimpia},-${r.imprevisto_valor}\n`; 
+                }
+            });
+            
+            db.mantenimientos.forEach(m => { 
+                let descLimpia = m.descripcion.replace(/,/g, " ");
+                csv += `${m.fecha},Gasto Taller,${descLimpia},-${m.valor}\n`; 
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url); 
+            a.setAttribute('download', 'FUZ_764_Reporte_Financiero.csv'); 
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
     </script>
 </body>
