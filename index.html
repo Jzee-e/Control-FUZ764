@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Financiero FUZ 764</title>
+    <!-- Estilos y Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,6 +23,7 @@
 </head>
 <body class="text-gray-800 antialiased pb-24 md:pb-0">
 
+    <!-- SECCIÓN 1: AUTENTICACIÓN (LOGIN) -->
     <div id="auth-container" class="min-h-screen flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full border border-gray-100">
             <div class="text-center mb-6">
@@ -47,6 +49,7 @@
         </div>
     </div>
 
+    <!-- SECCIÓN 2: APLICATIVO PRINCIPAL -->
     <div id="app-container" class="hidden">
         <nav class="bg-yellow-400 shadow-md sticky top-0 z-40">
             <div class="max-w-4xl mx-auto px-4">
@@ -56,7 +59,7 @@
                         <div>FUZ 764 <span class="block text-[10px] font-normal text-yellow-900 bg-yellow-300 px-1.5 rounded mt-0.5">Control Nube</span></div>
                     </div>
                     <div class="hidden md:flex space-x-1 items-center">
-                        <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 bg-yellow-500 transition">Resumen</button>
+                        <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition bg-yellow-500">Resumen</button>
                         <button onclick="switchTab('diario')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Diario</button>
                         <button onclick="switchTab('conductor')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Conductor</button>
                         <button onclick="switchTab('gastos')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Historial Gastos</button>
@@ -64,13 +67,14 @@
                         <button onclick="switchTab('calendario')" class="nav-btn px-3 py-2 rounded text-sm font-medium hover:bg-yellow-500 transition">Calendario</button>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="switchTab('ajustes')" class="bg-yellow-600 hover:bg-yellow-700 text-white p-2 md:px-3 rounded-md text-sm transition"><i class="fa-solid fa-gear"></i></button>
+                        <button onclick="switchTab('ajustes')" class="nav-btn bg-yellow-600 hover:bg-yellow-700 text-white p-2 md:px-3 rounded-md text-sm transition"><i class="fa-solid fa-gear"></i></button>
                         <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-white p-2 md:px-3 rounded-md text-sm transition"><i class="fa-solid fa-power-off"></i></button>
                     </div>
                 </div>
             </div>
         </nav>
 
+        <!-- Menú Móvil -->
         <nav class="md:hidden bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] fixed bottom-0 w-full z-40 flex justify-around py-1 text-[10px]">
             <button onclick="switchTab('dashboard')" class="nav-btn-mobile flex flex-col items-center p-2 text-yellow-600"><i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>Resumen</button>
             <button onclick="switchTab('diario')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-500"><i class="fa-solid fa-book-journal-whills text-lg mb-0.5"></i>Diario</button>
@@ -80,6 +84,7 @@
         </nav>
 
         <div class="max-w-4xl mx-auto p-4 mt-2">
+            <!-- DASHBOARD -->
             <div id="view-dashboard" class="tab-content active">
                 <div id="alertas-documentos" class="mb-4 space-y-2"></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -106,6 +111,7 @@
                 <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg flex justify-center items-center transition"><i class="fa-solid fa-file-csv mr-2 text-xl"></i> Exportar Datos</button>
             </div>
 
+            <!-- DIARIO -->
             <div id="view-diario" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800">Registro Diario</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6">
@@ -128,13 +134,11 @@
                 </div>
             </div>
 
+            <!-- CONDUCTOR -->
             <div id="view-conductor" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800">Gastos del Ahorro (Conductor)</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
                     <form id="form-gasto-ahorro" onsubmit="guardarGastoAhorro(event)" class="space-y-4">
-                        <div class="bg-yellow-50 text-yellow-800 p-3 rounded-md text-xs font-semibold mb-2 border border-yellow-200">
-                            <i class="fa-solid fa-circle-info mr-1"></i> Registra aquí si utilizaste dinero del ahorro acumulado. Este valor se restará del total en el Resumen.
-                        </div>
                         <input type="date" id="ahorro-gasto-fecha" required class="w-full border rounded-lg py-2 px-3 focus:ring-2 focus:ring-yellow-400">
                         <input type="text" id="ahorro-gasto-motivo" required placeholder="Motivo del retiro (Ej: Préstamo, Personal)" class="w-full border rounded-lg py-2 px-3">
                         <input type="number" id="ahorro-gasto-valor" required placeholder="Valor retirado ($)" class="w-full border rounded-lg py-2 px-3">
@@ -151,6 +155,7 @@
                 </div>
             </div>
 
+            <!-- HISTORIAL GASTOS -->
             <div id="view-gastos" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800">Historial de Gastos del Vehículo</h2>
                 <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
@@ -163,6 +168,7 @@
                 </div>
             </div>
 
+            <!-- TALLER -->
             <div id="view-mantenimiento" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800">Registro de Taller</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6">
@@ -175,6 +181,7 @@
                 </div>
             </div>
 
+            <!-- CALENDARIO -->
             <div id="view-calendario" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold uppercase text-gray-800">P&P (Placa 4)</h2>
@@ -192,20 +199,40 @@
                 </div>
             </div>
 
+            <!-- CONFIGURACIÓN -->
             <div id="view-ajustes" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Documentos</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Documentos del Vehículo</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-gray-800">
                     <form onsubmit="guardarConfiguracion(event)" class="space-y-4">
                         <div><label class="text-sm font-bold">Vencimiento SOAT</label><input type="date" id="conf-soat" class="w-full border rounded-lg py-2 px-3"></div>
-                        <div><label class="text-sm font-bold">Vencimiento Tecno</label><input type="date" id="conf-tecno" class="w-full border rounded-lg py-2 px-3"></div>
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">Guardar Fechas</button>
+                        <div><label class="text-sm font-bold">Vencimiento Tecnicomecánica</label><input type="date" id="conf-tecno" class="w-full border rounded-lg py-2 px-3"></div>
+                        <div><label class="text-sm font-bold">Vencimiento Revisión Gas Natural (GNV)</label><input type="date" id="conf-gas" class="w-full border rounded-lg py-2 px-3"></div>
+                        <!-- NUEVA CASILLA EXTRA Y CONTRACTUAL -->
+                        <div><label class="text-sm font-bold">Vencimiento Pólizas Extra y Contractual</label><input type="date" id="conf-extra" class="w-full border rounded-lg py-2 px-3"></div>
+                        
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-4">Guardar Fechas</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="dia-modal" class="modal"><div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4"><h3 id="modal-fecha-titulo" class="font-bold border-b pb-2 mb-4 uppercase"></h3><div id="modal-contenido" class="text-sm space-y-2"></div><button onclick="cerrarModal()" class="mt-6 w-full bg-gray-200 py-2.5 rounded font-bold">Cerrar</button></div></div>
+    <!-- MODAL DE CALENDARIO -->
+    <div id="dia-modal" class="modal">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 relative">
+            <h3 id="modal-fecha-titulo" class="font-bold border-b pb-2 mb-4 uppercase text-gray-800"></h3>
+            <div id="modal-contenido" class="text-sm space-y-2 mb-4 max-h-60 overflow-y-auto pr-2"></div>
+            
+            <div class="border-t pt-3 mt-4">
+                <label class="text-xs font-bold text-gray-700"><i class="fa-solid fa-pen"></i> Agregar nota a este día:</label>
+                <input type="text" id="input-nota-dia" class="w-full border rounded p-2 mt-1 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="Ej: Conductor pidió permiso...">
+                <button id="btn-guardar-nota" class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 rounded transition">Guardar Nota</button>
+            </div>
+            
+            <button onclick="cerrarModal()" class="mt-4 w-full bg-gray-200 hover:bg-gray-300 py-2 rounded font-bold transition">Cerrar Ventana</button>
+        </div>
+    </div>
+
     <div id="toast">Operación exitosa</div>
 
     <script>
@@ -213,8 +240,9 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let db = { registrosDiarios: [], mantenimientos: [], gastosAhorro: [] };
+        let db = { registrosDiarios: [], mantenimientos: [], gastosAhorro: [], notasCalendario: [] };
         let usuarioActual = null;
+        let diaSeleccionado = null;
 
         window.onload = async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -256,10 +284,12 @@
             const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
             const { data: mants } = await supabaseClient.from('mantenimientos').select('*').order('fecha', { ascending: false });
             const { data: gahorro } = await supabaseClient.from('gastos_ahorro').select('*').order('fecha', { ascending: false });
+            const { data: notas } = await supabaseClient.from('notas_calendario').select('*').order('fecha', { ascending: false });
             
             db.registrosDiarios = diarios || [];
             db.mantenimientos = mants || [];
             db.gastosAhorro = gahorro || [];
+            db.notasCalendario = notas || [];
             
             actualizarDashboard();
             renderCalendario();
@@ -267,59 +297,55 @@
             renderListaGastosAhorro();
         }
 
-        // --- GESTIÓN GASTOS AHORRO (CONDUCTOR) ---
+        // --- PESTAÑAS ---
+        function switchTab(id) { 
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active')); 
+            document.getElementById(`view-${id}`).classList.add('active'); 
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-yellow-500'));
+            const btnPc = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(`'${id}'`));
+            if(btnPc) btnPc.classList.add('bg-yellow-500');
+
+            document.querySelectorAll('.nav-btn-mobile').forEach(b => {
+                b.classList.remove('text-yellow-600');
+                b.classList.add('text-gray-500');
+            });
+            const btnMob = Array.from(document.querySelectorAll('.nav-btn-mobile')).find(b => b.getAttribute('onclick').includes(`'${id}'`));
+            if(btnMob) {
+                btnMob.classList.remove('text-gray-500');
+                btnMob.classList.add('text-yellow-600');
+            }
+        }
+
+        // --- GESTIÓN GASTOS AHORRO ---
         async function guardarGastoAhorro(e) {
             e.preventDefault();
-            const nuevo = {
-                fecha: document.getElementById('ahorro-gasto-fecha').value,
-                motivo: document.getElementById('ahorro-gasto-motivo').value,
-                valor: parseFloat(document.getElementById('ahorro-gasto-valor').value) || 0
-            };
+            const nuevo = { fecha: document.getElementById('ahorro-gasto-fecha').value, motivo: document.getElementById('ahorro-gasto-motivo').value, valor: parseFloat(document.getElementById('ahorro-gasto-valor').value) || 0 };
             const { error } = await supabaseClient.from('gastos_ahorro').insert([nuevo]);
-            if (!error) {
-                showToast("Gasto de ahorro registrado");
-                document.getElementById('form-gasto-ahorro').reset();
-                document.getElementById('ahorro-gasto-fecha').value = new Date().toISOString().split('T')[0];
-                await descargarDatos();
-            } else { alert("Error: " + error.message); }
+            if (!error) { showToast("Retiro registrado"); document.getElementById('form-gasto-ahorro').reset(); document.getElementById('ahorro-gasto-fecha').value = new Date().toISOString().split('T')[0]; await descargarDatos(); }
         }
 
         function renderListaGastosAhorro() {
-            const tbody = document.getElementById('tabla-conductor-body');
-            tbody.innerHTML = '';
-            if (db.gastosAhorro.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No hay retiros registrados.</td></tr>';
-                return;
-            }
-            db.gastosAhorro.forEach(g => {
-                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 font-bold">${g.fecha}</td><td class="px-4 py-3">${g.motivo}</td><td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(g.valor)}</td></tr>`;
-            });
+            const tbody = document.getElementById('tabla-conductor-body'); tbody.innerHTML = '';
+            if (db.gastosAhorro.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No hay retiros registrados.</td></tr>'; return; }
+            db.gastosAhorro.forEach(g => tbody.innerHTML += `<tr class="hover:bg-gray-50 border-b"><td class="px-4 py-3 font-bold">${g.fecha}</td><td class="px-4 py-3">${g.motivo}</td><td class="px-4 py-3 text-red-600 font-bold">-${formatMoneda(g.valor)}</td></tr>`);
         }
 
         // --- GESTIÓN GASTOS VEHÍCULO ---
         function renderListaGastos() {
-            const tbody = document.getElementById('tabla-gastos-body');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('tabla-gastos-body'); tbody.innerHTML = '';
             let lista = [];
             db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => lista.push({ f: r.fecha, d: r.imprevisto_desc, v: r.imprevisto_valor, t: 'Extras' }));
             db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller' }));
             lista.sort((a, b) => new Date(b.f) - new Date(a.f));
-            if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center italic">Sin gastos registrados</td></tr>'; return; }
-            lista.forEach(i => {
-                tbody.innerHTML += `<tr class="border-b"><td class="px-4 py-2 font-bold">${i.f}</td><td class="px-4 py-2">${i.d}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td><td class="px-4 py-2 text-red-600 font-bold">-${formatMoneda(i.v)}</td></tr>`;
-            });
+            if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center italic text-gray-400">Sin gastos registrados</td></tr>'; return; }
+            lista.forEach(i => tbody.innerHTML += `<tr class="border-b"><td class="px-4 py-2 font-bold">${i.f}</td><td class="px-4 py-2">${i.d}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td><td class="px-4 py-2 text-red-600 font-bold">-${formatMoneda(i.v)}</td></tr>`);
         }
 
         async function guardarRegistroDiario(e) {
             e.preventDefault();
             const check = document.getElementById('check-imprevisto').checked;
-            const nuevo = {
-                fecha: document.getElementById('diario-fecha').value,
-                entrega: parseFloat(document.getElementById('diario-entrega').value) || 0,
-                ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0,
-                imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '',
-                imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0
-            };
+            const nuevo = { fecha: document.getElementById('diario-fecha').value, entrega: parseFloat(document.getElementById('diario-entrega').value) || 0, ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0, imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '', imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0 };
             const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
             if (!error) { showToast("Guardado"); document.getElementById('form-diario').reset(); document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0]; toggleImprevisto(); await descargarDatos(); }
         }
@@ -344,11 +370,10 @@
             document.getElementById('dash-ingreso-bruto').innerText = formatMoneda(brt);
             document.getElementById('dash-descuentos').innerText = "-" + formatMoneda(imp + mnt);
             document.getElementById('dash-ingreso-neto').innerText = formatMoneda(brt - (imp + mnt));
-            // Cálculo del Ahorro Neto: Acumulado menos lo gastado por el conductor
             document.getElementById('dash-ahorro-conductor').innerText = formatMoneda(ahrAcumulado - ahrGastado);
         }
 
-        // --- CALENDARIO P&P ---
+        // --- CALENDARIO ---
         function getFestivos(anio) {
             const f = []; const add = (m,d) => f.push(`${anio}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
             const nextMon = (dObj) => { if (dObj.getDay() !== 1) dObj.setDate(dObj.getDate() + (8 - dObj.getDay()) % 7); return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')}`; };
@@ -380,40 +405,123 @@
             const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
             document.getElementById('mes-anio-texto').innerText = `${meses[mAct]} ${aAct}`;
             for (let i=0; i<pDia; i++) grid.innerHTML += '<div></div>';
+            
             for (let d=1; d<=dMes; d++) {
                 const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str), reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
-                let cl = "h-14 border rounded-lg flex flex-col items-center justify-center relative cursor-pointer ";
+                const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str);
+                const reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
+                const notaExistente = db.notasCalendario.some(n=>n.fecha===str);
+
+                let cl = "h-14 md:h-16 border rounded-lg flex flex-col items-center justify-center relative cursor-pointer ";
                 if(p) cl += "bg-red-50 border-red-300 shadow-sm"; else if(fes) cl += "bg-green-50 text-green-900 border-green-300"; else cl += "bg-white hover:bg-gray-50 border-gray-200";
-                grid.innerHTML += `<div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})"><span class="text-xs font-bold text-gray-800">${d}</span>${p ? '<span class="text-[9px] font-black text-red-700">P&P</span>':''}${reg ? '<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full"></span>':''}</div>`;
+                
+                grid.innerHTML += `
+                    <div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})">
+                        <span class="text-xs md:text-sm font-bold text-gray-800">${d}</span>
+                        ${p ? '<span class="text-[9px] font-black text-red-700">P&P</span>':''}
+                        ${reg ? '<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full"></span>':''}
+                        ${notaExistente ? '<i class="fa-solid fa-comment absolute bottom-1 right-1 text-[10px] text-blue-500"></i>':''}
+                    </div>`;
             }
         }
 
         function abrirModalDia(f, pyp, fes) {
+            diaSeleccionado = f;
             document.getElementById('modal-fecha-titulo').innerText = f;
+            document.getElementById('input-nota-dia').value = "";
+
             let h = '';
             if(pyp) h += '<div class="bg-red-100 text-red-800 p-2 rounded mb-2 text-center text-xs font-bold">Pico y Placa (Quieto)</div>';
             if(fes) h += '<div class="bg-green-100 text-green-800 p-2 rounded mb-2 text-center text-xs font-bold">Festivo Nacional</div>';
+            
+            db.notasCalendario.filter(n=>n.fecha===f).forEach(n => {
+                h += `<div class="bg-blue-50 border-l-2 border-blue-500 p-2 rounded mt-2 text-xs font-medium text-blue-800"><i class="fa-solid fa-comment-dots mr-1"></i> ${n.nota}</div>`;
+            });
+
             db.registrosDiarios.filter(x=>x.fecha===f).forEach(x => { h += `<p class="border-b pb-1 mt-2"><strong>Entrega:</strong> ${formatMoneda(x.entrega)}</p>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500 text-xs">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; });
             db.mantenimientos.filter(y=>y.fecha===f).forEach(y => h += `<div class="bg-red-50 p-2 rounded mt-1 text-xs font-bold">Taller: ${y.descripcion}</div>`);
-            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic text-gray-500 text-center mt-4">Sin registros</p>';
+            
+            document.getElementById('modal-contenido').innerHTML = h || '<p class="italic text-gray-400 text-center mt-2">No hay registros hoy</p>';
             document.getElementById('dia-modal').classList.add('active');
+
+            document.getElementById('btn-guardar-nota').onclick = async () => {
+                const textoNota = document.getElementById('input-nota-dia').value;
+                if(!textoNota) return alert("Escribe una nota primero");
+                const btn = document.getElementById('btn-guardar-nota');
+                btn.innerText = "Guardando...";
+                const { error } = await supabaseClient.from('notas_calendario').insert([{ fecha: diaSeleccionado, nota: textoNota }]);
+                if (!error) { showToast("Nota agregada"); await descargarDatos(); cerrarModal(); }
+                else { alert("Error al guardar: " + error.message); }
+                btn.innerText = "Guardar Nota";
+            };
         }
 
         function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
-        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active')); document.getElementById(`view-${id}`).classList.add('active'); }
-        function guardarConfiguracion(e) { e.preventDefault(); localStorage.setItem('fuz764_soat', document.getElementById('conf-soat').value); localStorage.setItem('fuz764_tecno', document.getElementById('conf-tecno').value); showToast("Fechas Guardadas"); revisarDocumentos(); switchTab('dashboard'); }
-        function cargarConfiguracion() { document.getElementById('conf-soat').value = localStorage.getItem('fuz764_soat') || ''; document.getElementById('conf-tecno').value = localStorage.getItem('fuz764_tecno') || ''; }
-        function revisarDocumentos() {
-            const s = localStorage.getItem('fuz764_soat'), t = localStorage.getItem('fuz764_tecno'), c = document.getElementById('alertas-documentos'); c.innerHTML = '';
-            const ev = (f, n) => { if (!f) return; const hoy = new Date(); hoy.setHours(0,0,0,0); const d = Math.ceil((new Date(f+'T00:00:00') - hoy) / 86400000); let cl = "p-3 rounded-lg text-sm font-bold border-l-4 "; if (d < 0) cl += "bg-red-50 text-red-800 border-red-600"; else if (d <= 30) cl += "bg-orange-50 text-orange-800 border-orange-500"; else cl += "bg-green-50 text-green-800 border-green-500"; c.innerHTML += `<div class="${cl}">${n}: ${d < 0 ? 'VENCIDO' : (d <= 30 ? 'Por vencer' : 'Vigente')} (${d} días)</div>`; };
-            ev(s, "SOAT"); ev(t, "Tecno");
+
+        // --- GESTIÓN CONFIGURACIÓN ALERTS ---
+        function guardarConfiguracion(e) { 
+            e.preventDefault(); 
+            localStorage.setItem('fuz764_soat', document.getElementById('conf-soat').value); 
+            localStorage.setItem('fuz764_tecno', document.getElementById('conf-tecno').value); 
+            localStorage.setItem('fuz764_gas', document.getElementById('conf-gas').value); 
+            localStorage.setItem('fuz764_extra', document.getElementById('conf-extra').value); // Guardado Extra
+            showToast("Fechas Guardadas"); 
+            revisarDocumentos(); 
+            switchTab('dashboard'); 
         }
+        
+        function cargarConfiguracion() { 
+            document.getElementById('conf-soat').value = localStorage.getItem('fuz764_soat') || ''; 
+            document.getElementById('conf-tecno').value = localStorage.getItem('fuz764_tecno') || ''; 
+            document.getElementById('conf-gas').value = localStorage.getItem('fuz764_gas') || ''; 
+            document.getElementById('conf-extra').value = localStorage.getItem('fuz764_extra') || ''; // Carga Extra
+        }
+        
+        function revisarDocumentos() {
+            const s = localStorage.getItem('fuz764_soat');
+            const t = localStorage.getItem('fuz764_tecno');
+            const g = localStorage.getItem('fuz764_gas'); 
+            const e_doc = localStorage.getItem('fuz764_extra'); // Variable Extra
+            const c = document.getElementById('alertas-documentos'); 
+            c.innerHTML = '';
+            
+            const ev = (f, n) => { 
+                if (!f) return; 
+                const hoy = new Date(); hoy.setHours(0,0,0,0); 
+                const fechaVenc = new Date(f+'T00:00:00');
+                const diffDias = Math.ceil((fechaVenc - hoy) / 86400000); 
+                
+                let cl = "p-3 rounded-lg text-sm font-bold flex items-center shadow-sm border-l-4 "; 
+                let icono = ""; let texto = "";
+
+                if (diffDias < 0) { 
+                    cl += "bg-red-50 text-red-800 border-red-600"; 
+                    icono = '<i class="fa-solid fa-triangle-exclamation text-xl mr-3 text-red-600"></i>';
+                    texto = `${n} VENCIDO hace ${Math.abs(diffDias)} días`;
+                } else if (diffDias <= 30) { 
+                    cl += "bg-orange-50 text-orange-800 border-orange-500"; 
+                    icono = '<i class="fa-solid fa-clock text-xl mr-3 text-orange-500"></i>';
+                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
+                } else { 
+                    cl += "bg-green-50 text-green-800 border-green-500"; 
+                    icono = '<i class="fa-solid fa-circle-check text-xl mr-3 text-green-500"></i>';
+                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
+                } 
+                c.innerHTML += `<div class="${cl} mb-2">${icono} <span>${texto}</span></div>`; 
+            };
+            
+            ev(s, "SOAT"); 
+            ev(t, "Revisión Tecnomecánica");
+            ev(g, "Revisión de Gas Natural (GNV)"); 
+            ev(e_doc, "Pólizas Extra y Contractual"); // Evaluación Extra
+        }
+
         function exportarCSV() {
             let csv = "\uFEFFFecha,Tipo,Detalle,Valor\n";
             db.registrosDiarios.forEach(r => { csv += `${r.fecha},Entrega,Bruto,${r.entrega}\n${r.fecha},Ahorro,Fondo,${r.ahorro}\n`; if(r.imprevisto_valor>0) csv += `${r.fecha},Extra,${r.imprevisto_desc.replace(/,/g," ")},-${r.imprevisto_valor}\n`; });
             db.mantenimientos.forEach(m => csv += `${m.fecha},Taller,${m.descripcion.replace(/,/g," ")},-${m.valor}\n`);
             db.gastosAhorro.forEach(g => csv += `${g.fecha},Gasto Ahorro,${g.motivo.replace(/,/g," ")},-${g.valor}\n`);
+            db.notasCalendario.forEach(n => csv += `${n.fecha},Nota Calendario,${n.nota.replace(/,/g," ")},0\n`);
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.setAttribute('href', url); a.setAttribute('download', 'FUZ_764_Reporte.csv'); a.click();
         }
     </script>
