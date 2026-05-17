@@ -86,7 +86,6 @@
         <div class="max-w-4xl mx-auto p-4 mt-2">
             <!-- DASHBOARD -->
             <div id="view-dashboard" class="tab-content active">
-                <div id="alertas-documentos" class="mb-4 space-y-2"></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
                         <p class="text-sm text-gray-500 font-semibold uppercase">Ingreso Bruto</p>
@@ -108,6 +107,10 @@
                         <p class="text-3xl font-bold text-yellow-900 mt-2" id="dash-ahorro-conductor">$0</p>
                     </div>
                 </div>
+
+                <!-- ALERTAS DOCUMENTOS -->
+                <div id="alertas-documentos" class="mb-6 space-y-2"></div>
+
                 <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg flex justify-center items-center transition"><i class="fa-solid fa-file-csv mr-2 text-xl"></i> Exportar Datos</button>
             </div>
 
@@ -201,16 +204,16 @@
 
             <!-- CONFIGURACIÓN -->
             <div id="view-ajustes" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Documentos del Vehículo</h2>
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Documentos del Vehículo (Nube)</h2>
                 <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-gray-800">
-                    <form onsubmit="guardarConfiguracion(event)" class="space-y-4">
+                    <p class="text-xs text-gray-500 mb-4">Al guardar aquí, las fechas se actualizarán para todos los dispositivos que usen esta cuenta.</p>
+                    <form id="form-configuracion" onsubmit="guardarConfiguracion(event)" class="space-y-4">
                         <div><label class="text-sm font-bold">Vencimiento SOAT</label><input type="date" id="conf-soat" class="w-full border rounded-lg py-2 px-3"></div>
                         <div><label class="text-sm font-bold">Vencimiento Tecnicomecánica</label><input type="date" id="conf-tecno" class="w-full border rounded-lg py-2 px-3"></div>
                         <div><label class="text-sm font-bold">Vencimiento Revisión Gas Natural (GNV)</label><input type="date" id="conf-gas" class="w-full border rounded-lg py-2 px-3"></div>
-                        <!-- NUEVA CASILLA EXTRA Y CONTRACTUAL -->
                         <div><label class="text-sm font-bold">Vencimiento Pólizas Extra y Contractual</label><input type="date" id="conf-extra" class="w-full border rounded-lg py-2 px-3"></div>
                         
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-4">Guardar Fechas</button>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-4">Guardar Fechas en la Nube</button>
                     </form>
                 </div>
             </div>
@@ -240,7 +243,13 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let db = { registrosDiarios: [], mantenimientos: [], gastosAhorro: [], notasCalendario: [] };
+        let db = { 
+            registrosDiarios: [], 
+            mantenimientos: [], 
+            gastosAhorro: [], 
+            notasCalendario: [],
+            configuracion: { soat: '', tecno: '', gas: '', extra: '' } // Nuevo estado para config
+        };
         let usuarioActual = null;
         let diaSeleccionado = null;
 
@@ -251,7 +260,6 @@
             document.getElementById('diario-fecha').value = hoy;
             document.getElementById('mant-fecha').value = hoy;
             document.getElementById('ahorro-gasto-fecha').value = hoy;
-            cargarConfiguracion();
         };
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -259,12 +267,19 @@
         });
 
         function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
-        async function mostrarApp() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); await descargarDatos(); revisarDocumentos(); }
+        
+        async function mostrarApp() { 
+            document.getElementById('auth-container').classList.add('hidden'); 
+            document.getElementById('app-container').classList.remove('hidden'); 
+            await descargarDatos(); 
+        }
         
         async function manejarAuth() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
+            const btn = document.getElementById('btn-entrar'); btn.innerText = "Cargando...";
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            btn.innerText = "Entrar";
             if (error) alert("Error: " + error.message);
             else { showToast("¡Bienvenido!"); mostrarApp(); }
         }
@@ -279,6 +294,7 @@
 
         async function cerrarSesion() { await supabaseClient.auth.signOut(); }
 
+        // --- DESCARGA DE TODOS LOS DATOS (INCLUIDA LA CONFIGURACIÓN) ---
         async function descargarDatos() {
             if (!usuarioActual) return;
             const { data: diarios } = await supabaseClient.from('registros_diarios').select('*').order('fecha', { ascending: false });
@@ -286,15 +302,29 @@
             const { data: gahorro } = await supabaseClient.from('gastos_ahorro').select('*').order('fecha', { ascending: false });
             const { data: notas } = await supabaseClient.from('notas_calendario').select('*').order('fecha', { ascending: false });
             
+            // Descargar configuración desde la nube
+            const { data: config } = await supabaseClient.from('configuracion_vehiculo').select('*').eq('id', 1).single();
+            
             db.registrosDiarios = diarios || [];
             db.mantenimientos = mants || [];
             db.gastosAhorro = gahorro || [];
             db.notasCalendario = notas || [];
             
+            // Si hay datos en la nube, los guardamos en el estado local, si no, lo dejamos vacío
+            if (config) {
+                db.configuracion = { soat: config.soat || '', tecno: config.tecno || '', gas: config.gas || '', extra: config.extra || '' };
+                // Llenar las casillas de la pestaña de ajustes
+                document.getElementById('conf-soat').value = db.configuracion.soat;
+                document.getElementById('conf-tecno').value = db.configuracion.tecno;
+                document.getElementById('conf-gas').value = db.configuracion.gas;
+                document.getElementById('conf-extra').value = db.configuracion.extra;
+            }
+            
             actualizarDashboard();
             renderCalendario();
             renderListaGastos();
             renderListaGastosAhorro();
+            revisarDocumentos(); // Mostramos las alertas basándonos en los datos de la nube
         }
 
         // --- PESTAÑAS ---
@@ -315,6 +345,77 @@
                 btnMob.classList.remove('text-gray-500');
                 btnMob.classList.add('text-yellow-600');
             }
+        }
+
+        // --- GESTIÓN CONFIGURACIÓN EN LA NUBE ---
+        async function guardarConfiguracion(e) { 
+            e.preventDefault(); 
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Guardando en la nube...";
+
+            // Leer datos del formulario. Si están vacíos, enviamos null
+            const payload = {
+                id: 1,
+                soat: document.getElementById('conf-soat').value || null,
+                tecno: document.getElementById('conf-tecno').value || null,
+                gas: document.getElementById('conf-gas').value || null,
+                extra: document.getElementById('conf-extra').value || null
+            };
+
+            // Upsert (Actualiza o inserta si no existe) en la base de datos
+            const { error } = await supabaseClient.from('configuracion_vehiculo').upsert(payload);
+            
+            btn.innerText = "Guardar Fechas en la Nube";
+            
+            if(!error) {
+                showToast("Fechas guardadas en la nube exitosamente"); 
+                await descargarDatos(); // Volvemos a descargar para refrescar las alertas
+                switchTab('dashboard'); 
+            } else {
+                alert("Error al guardar configuración: " + error.message);
+            }
+        }
+        
+        function revisarDocumentos() {
+            // Ahora leemos directamente desde nuestra variable db.configuracion (traída de la nube)
+            const s = db.configuracion.soat;
+            const t = db.configuracion.tecno;
+            const g = db.configuracion.gas; 
+            const e_doc = db.configuracion.extra; 
+            const c = document.getElementById('alertas-documentos'); 
+            c.innerHTML = '';
+            
+            const ev = (f, n) => { 
+                if (!f) return; 
+                const hoy = new Date(); hoy.setHours(0,0,0,0); 
+                const fechaVenc = new Date(f+'T00:00:00');
+                // Ajuste de zona horaria para que no calcule un día menos
+                fechaVenc.setMinutes(fechaVenc.getMinutes() + fechaVenc.getTimezoneOffset());
+                const diffDias = Math.ceil((fechaVenc - hoy) / 86400000); 
+                
+                let cl = "p-3 rounded-lg text-sm font-bold flex items-center shadow-sm border-l-4 "; 
+                let icono = ""; let texto = "";
+
+                if (diffDias < 0) { 
+                    cl += "bg-red-50 text-red-800 border-red-600"; 
+                    icono = '<i class="fa-solid fa-triangle-exclamation text-xl mr-3 text-red-600"></i>';
+                    texto = `${n} VENCIDO hace ${Math.abs(diffDias)} días`;
+                } else if (diffDias <= 30) { 
+                    cl += "bg-orange-50 text-orange-800 border-orange-500"; 
+                    icono = '<i class="fa-solid fa-clock text-xl mr-3 text-orange-500"></i>';
+                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
+                } else { 
+                    cl += "bg-green-50 text-green-800 border-green-500"; 
+                    icono = '<i class="fa-solid fa-circle-check text-xl mr-3 text-green-500"></i>';
+                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
+                } 
+                c.innerHTML += `<div class="${cl} mb-2">${icono} <span>${texto}</span></div>`; 
+            };
+            
+            ev(s, "SOAT"); 
+            ev(t, "Revisión Tecnicomecánica");
+            ev(g, "Revisión de Gas Natural (GNV)"); 
+            ev(e_doc, "Pólizas Extra y Contractual"); 
         }
 
         // --- GESTIÓN GASTOS AHORRO ---
@@ -457,64 +558,6 @@
         }
 
         function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
-
-        // --- GESTIÓN CONFIGURACIÓN ALERTS ---
-        function guardarConfiguracion(e) { 
-            e.preventDefault(); 
-            localStorage.setItem('fuz764_soat', document.getElementById('conf-soat').value); 
-            localStorage.setItem('fuz764_tecno', document.getElementById('conf-tecno').value); 
-            localStorage.setItem('fuz764_gas', document.getElementById('conf-gas').value); 
-            localStorage.setItem('fuz764_extra', document.getElementById('conf-extra').value); // Guardado Extra
-            showToast("Fechas Guardadas"); 
-            revisarDocumentos(); 
-            switchTab('dashboard'); 
-        }
-        
-        function cargarConfiguracion() { 
-            document.getElementById('conf-soat').value = localStorage.getItem('fuz764_soat') || ''; 
-            document.getElementById('conf-tecno').value = localStorage.getItem('fuz764_tecno') || ''; 
-            document.getElementById('conf-gas').value = localStorage.getItem('fuz764_gas') || ''; 
-            document.getElementById('conf-extra').value = localStorage.getItem('fuz764_extra') || ''; // Carga Extra
-        }
-        
-        function revisarDocumentos() {
-            const s = localStorage.getItem('fuz764_soat');
-            const t = localStorage.getItem('fuz764_tecno');
-            const g = localStorage.getItem('fuz764_gas'); 
-            const e_doc = localStorage.getItem('fuz764_extra'); // Variable Extra
-            const c = document.getElementById('alertas-documentos'); 
-            c.innerHTML = '';
-            
-            const ev = (f, n) => { 
-                if (!f) return; 
-                const hoy = new Date(); hoy.setHours(0,0,0,0); 
-                const fechaVenc = new Date(f+'T00:00:00');
-                const diffDias = Math.ceil((fechaVenc - hoy) / 86400000); 
-                
-                let cl = "p-3 rounded-lg text-sm font-bold flex items-center shadow-sm border-l-4 "; 
-                let icono = ""; let texto = "";
-
-                if (diffDias < 0) { 
-                    cl += "bg-red-50 text-red-800 border-red-600"; 
-                    icono = '<i class="fa-solid fa-triangle-exclamation text-xl mr-3 text-red-600"></i>';
-                    texto = `${n} VENCIDO hace ${Math.abs(diffDias)} días`;
-                } else if (diffDias <= 30) { 
-                    cl += "bg-orange-50 text-orange-800 border-orange-500"; 
-                    icono = '<i class="fa-solid fa-clock text-xl mr-3 text-orange-500"></i>';
-                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
-                } else { 
-                    cl += "bg-green-50 text-green-800 border-green-500"; 
-                    icono = '<i class="fa-solid fa-circle-check text-xl mr-3 text-green-500"></i>';
-                    texto = `${n}: Faltan ${diffDias} días (Vence el ${f})`;
-                } 
-                c.innerHTML += `<div class="${cl} mb-2">${icono} <span>${texto}</span></div>`; 
-            };
-            
-            ev(s, "SOAT"); 
-            ev(t, "Revisión Tecnomecánica");
-            ev(g, "Revisión de Gas Natural (GNV)"); 
-            ev(e_doc, "Pólizas Extra y Contractual"); // Evaluación Extra
-        }
 
         function exportarCSV() {
             let csv = "\uFEFFFecha,Tipo,Detalle,Valor\n";
