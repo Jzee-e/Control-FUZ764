@@ -13,7 +13,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23facc15'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%F0%9F%9A%95%3C/text%3E%3C/svg%3E">
     <!-- Estilos y Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -61,6 +61,9 @@
         .skeleton { background: linear-gradient(90deg,#eef0f2 25%,#f7f8f9 37%,#eef0f2 63%); background-size: 400% 100%; animation: skeletonWave 1.4s ease infinite; }
         @keyframes skeletonWave { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+        input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
     </style>
 </head>
 <body class="text-gray-800 antialiased pb-24 md:pb-0">
@@ -119,8 +122,8 @@
                         <button data-tab="calendario" onclick="switchTab('calendario')" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-800 hover:bg-white/40 transition">Calendario</button>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="switchTab('ajustes')" class="bg-gray-900/80 hover:bg-gray-900 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-gear"></i></button>
-                        <button onclick="cerrarSesion()" class="bg-red-600 hover:bg-red-700 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-power-off"></i></button>
+                        <button onclick="switchTab('ajustes')" aria-label="Ajustes" class="bg-gray-900/80 hover:bg-gray-900 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-gear"></i></button>
+                        <button onclick="cerrarSesion()" aria-label="Cerrar sesión" class="bg-red-600 hover:bg-red-700 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-power-off"></i></button>
                     </div>
                 </div>
             </div>
@@ -246,11 +249,42 @@
             <!-- HISTORIAL GASTOS -->
             <div id="view-gastos" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center"><i class="fa-solid fa-list-check text-brand-500 mr-2"></i>Historial de Gastos del Vehículo</h2>
+
+                <!-- FILTRO POR FECHAS -->
+                <div class="bg-white rounded-xl shadow-soft p-4 mb-4 border border-gray-100">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Desde</label>
+                            <input type="date" id="gastos-filtro-desde" onchange="aplicarFiltroGastos()" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Hasta</label>
+                            <input type="date" id="gastos-filtro-hasta" onchange="aplicarFiltroGastos()" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                        </div>
+                        <button onclick="limpiarFiltroGastos()" class="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold text-sm py-2.5 px-4 rounded-lg transition whitespace-nowrap"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Limpiar filtro</button>
+                    </div>
+                </div>
+
+                <!-- CALCULADORA / RESUMEN DE SELECCIÓN -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-white rounded-xl shadow-soft p-4 border-l-4 border-gray-400">
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Total filtrado (<span id="gastos-conteo-filtrado">0</span>)</p>
+                        <p class="text-xl font-extrabold text-gray-800 mt-1" id="gastos-total-filtrado">$0</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-soft p-4 border-l-4 border-brand-500">
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Seleccionado (<span id="gastos-conteo-seleccionado">0</span>)</p>
+                        <p class="text-xl font-extrabold text-brand-700 mt-1" id="gastos-total-seleccionado">$0</p>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-soft border border-gray-100 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <thead class="bg-gray-50 font-bold text-gray-500 text-xs uppercase tracking-wide">
-                                <tr><th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Detalle</th><th class="px-4 py-3 text-left">Valor</th></tr>
+                                <tr>
+                                    <th class="px-4 py-3 text-left w-10"><input type="checkbox" id="check-todos-gastos" onchange="toggleSeleccionarTodosGastos(this.checked)" class="form-checkbox h-4 w-4 text-brand-500 rounded focus:ring-brand-400"></th>
+                                    <th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Detalle</th><th class="px-4 py-3 text-left">Valor</th>
+                                </tr>
                             </thead>
                             <tbody id="tabla-gastos-body" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -293,6 +327,7 @@
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-red-100 border border-red-400 inline-block"></span>Pico y Placa</span>
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-green-50 border border-green-300 inline-block"></span>Festivo</span>
                         <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>Con producido</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-screwdriver-wrench text-orange-500 text-[10px]"></i>Evento de taller</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-comment text-violet-500 text-[10px]"></i>Con nota</span>
                     </div>
                 </div>
@@ -356,6 +391,7 @@
         };
         let usuarioActual = null;
         let diaSeleccionado = null;
+        let appYaCargada = false; // Evita recargar todos los datos cada vez que el navegador recupera el foco
 
         window.onload = async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -367,7 +403,19 @@
         };
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) { usuarioActual = session.user; mostrarApp(); } else { usuarioActual = null; mostrarLogin(); }
+            if (session) {
+                usuarioActual = session.user;
+                if (event === 'SIGNED_IN' && !appYaCargada) {
+                    // Primer inicio de sesión real: sí cargamos datos
+                    mostrarApp();
+                } else {
+                    // TOKEN_REFRESHED u otros eventos automáticos (cambio de pestaña/app): solo aseguramos la UI, sin re-descargar
+                    document.getElementById('auth-container').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                }
+            } else {
+                usuarioActual = null; appYaCargada = false; mostrarLogin();
+            }
         });
 
         function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
@@ -376,14 +424,15 @@
             document.getElementById('auth-container').classList.add('hidden'); 
             document.getElementById('app-container').classList.remove('hidden'); 
             await descargarDatos(); 
+            appYaCargada = true;
         }
         
         async function manejarAuth() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            const btn = document.getElementById('btn-entrar'); btn.innerText = "Cargando...";
+            const btn = document.getElementById('btn-entrar'); btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerText = "Cargando...";
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            btn.innerText = "Entrar";
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerText = "Entrar";
             if (error) alert("Error: " + error.message);
             else { showToast("¡Bienvenido!"); mostrarApp(); }
         }
@@ -458,7 +507,8 @@
         async function guardarConfiguracion(e) { 
             e.preventDefault(); 
             const btn = e.target.querySelector('button[type="submit"]');
-            btn.innerText = "Guardando en la nube...";
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando en la nube...';
 
             // Leer datos del formulario. Si están vacíos, enviamos null
             const payload = {
@@ -472,7 +522,8 @@
             // Upsert (Actualiza o inserta si no existe) en la base de datos
             const { error } = await supabaseClient.from('configuracion_vehiculo').upsert(payload);
             
-            btn.innerText = "Guardar Fechas en la Nube";
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed');
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i>Guardar Fechas en la Nube';
             
             if(!error) {
                 showToast("Fechas guardadas en la nube exitosamente"); 
@@ -528,9 +579,14 @@
         // --- GESTIÓN GASTOS AHORRO ---
         async function guardarGastoAhorro(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
             const nuevo = { fecha: document.getElementById('ahorro-gasto-fecha').value, motivo: document.getElementById('ahorro-gasto-motivo').value, valor: parseFloat(document.getElementById('ahorro-gasto-valor').value) || 0 };
             const { error } = await supabaseClient.from('gastos_ahorro').insert([nuevo]);
             if (!error) { showToast("Retiro registrado"); document.getElementById('form-gasto-ahorro').reset(); document.getElementById('ahorro-gasto-fecha').value = new Date().toISOString().split('T')[0]; await descargarDatos(); }
+            else { alert("Error al guardar: " + error.message); }
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
         }
 
         function renderListaGastosAhorro() {
@@ -540,29 +596,110 @@
         }
 
         // --- GESTIÓN GASTOS VEHÍCULO ---
+        // --- FILTRO Y CALCULADORA DE GASTOS (Historial Gastos) ---
+        let gastosFiltroDesde = '';
+        let gastosFiltroHasta = '';
+        let gastosSeleccionados = new Set();
+        let gastosListaCompleta = [];
+        let gastosListaFiltrada = [];
+
+        function claveGasto(i) { return `${i.t}|${i.f}|${i.v}|${i.d}`; }
+
+        function aplicarFiltroGastos() {
+            gastosFiltroDesde = document.getElementById('gastos-filtro-desde').value;
+            gastosFiltroHasta = document.getElementById('gastos-filtro-hasta').value;
+            renderListaGastos();
+        }
+
+        function limpiarFiltroGastos() {
+            document.getElementById('gastos-filtro-desde').value = '';
+            document.getElementById('gastos-filtro-hasta').value = '';
+            gastosFiltroDesde = ''; gastosFiltroHasta = '';
+            renderListaGastos();
+        }
+
+        function toggleSeleccionGasto(clave) {
+            if (gastosSeleccionados.has(clave)) gastosSeleccionados.delete(clave); else gastosSeleccionados.add(clave);
+            actualizarResumenGastos();
+            const todosMarcados = gastosListaFiltrada.length > 0 && gastosListaFiltrada.every(i => gastosSeleccionados.has(claveGasto(i)));
+            const checkTodos = document.getElementById('check-todos-gastos');
+            if (checkTodos) checkTodos.checked = todosMarcados;
+        }
+
+        function toggleSeleccionarTodosGastos(marcarTodos) {
+            gastosListaFiltrada.forEach(i => {
+                const clave = claveGasto(i);
+                if (marcarTodos) gastosSeleccionados.add(clave); else gastosSeleccionados.delete(clave);
+            });
+            renderListaGastos();
+        }
+
+        function actualizarResumenGastos() {
+            const totalFiltrado = gastosListaFiltrada.reduce((s, i) => s + i.v, 0);
+            const totalSeleccionado = gastosListaCompleta.filter(i => gastosSeleccionados.has(claveGasto(i))).reduce((s, i) => s + i.v, 0);
+            const conteoSeleccionado = gastosListaCompleta.filter(i => gastosSeleccionados.has(claveGasto(i))).length;
+            document.getElementById('gastos-conteo-filtrado').innerText = gastosListaFiltrada.length;
+            document.getElementById('gastos-total-filtrado').innerText = formatMoneda(totalFiltrado);
+            document.getElementById('gastos-conteo-seleccionado').innerText = conteoSeleccionado;
+            document.getElementById('gastos-total-seleccionado').innerText = formatMoneda(totalSeleccionado);
+        }
+
         function renderListaGastos() {
             const tbody = document.getElementById('tabla-gastos-body'); tbody.innerHTML = '';
             let lista = [];
             db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => lista.push({ f: r.fecha, d: r.imprevisto_desc, v: r.imprevisto_valor, t: 'Extras' }));
             db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller' }));
             lista.sort((a, b) => new Date(b.f) - new Date(a.f));
-            if (lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center italic text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Sin gastos registrados</td></tr>'; return; }
-            lista.forEach(i => tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors"><td class="px-4 py-2.5 font-bold whitespace-nowrap">${i.f}</td><td class="px-4 py-2.5">${i.d}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td><td class="px-4 py-2.5 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(i.v)}</td></tr>`);
+            gastosListaCompleta = lista;
+
+            const filtrada = lista.filter(i => (!gastosFiltroDesde || i.f >= gastosFiltroDesde) && (!gastosFiltroHasta || i.f <= gastosFiltroHasta));
+            gastosListaFiltrada = filtrada;
+
+            if (filtrada.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center italic text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Sin gastos en el rango seleccionado</td></tr>';
+            } else {
+                filtrada.forEach(i => {
+                    const clave = claveGasto(i);
+                    const marcado = gastosSeleccionados.has(clave) ? 'checked' : '';
+                    tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-2.5"><input type="checkbox" ${marcado} onchange="toggleSeleccionGasto('${clave.replace(/'/g, "\\'")}')" class="form-checkbox h-4 w-4 text-brand-500 rounded focus:ring-brand-400"></td>
+                        <td class="px-4 py-2.5 font-bold whitespace-nowrap">${i.f}</td>
+                        <td class="px-4 py-2.5">${i.d}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td>
+                        <td class="px-4 py-2.5 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(i.v)}</td>
+                    </tr>`;
+                });
+            }
+
+            const todosMarcados = filtrada.length > 0 && filtrada.every(i => gastosSeleccionados.has(claveGasto(i)));
+            const checkTodos = document.getElementById('check-todos-gastos');
+            if (checkTodos) checkTodos.checked = todosMarcados;
+
+            actualizarResumenGastos();
         }
 
         async function guardarRegistroDiario(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
             const check = document.getElementById('check-imprevisto').checked;
             const nuevo = { fecha: document.getElementById('diario-fecha').value, entrega: parseFloat(document.getElementById('diario-entrega').value) || 0, ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0, imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '', imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0 };
             const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
             if (!error) { showToast("Guardado"); document.getElementById('form-diario').reset(); document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0]; toggleImprevisto(); await descargarDatos(); }
+            else { alert("Error al guardar: " + error.message); }
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
         }
 
         async function guardarMantenimiento(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
             const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0 };
             const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
             if (!error) { showToast("Mantenimiento guardado"); document.getElementById('form-mantenimiento').reset(); document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0]; await descargarDatos(); }
+            else { alert("Error al guardar: " + error.message); }
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
         }
 
         function toggleImprevisto() { document.getElementById('seccion-imprevisto').classList.toggle('hidden', !document.getElementById('check-imprevisto').checked); }
@@ -617,7 +754,8 @@
             for (let d=1; d<=dMes; d++) {
                 const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str);
-                const reg = db.registrosDiarios.some(x=>x.fecha===str) || db.mantenimientos.some(y=>y.fecha===str);
+                const tieneProducido = db.registrosDiarios.some(x=>x.fecha===str);
+                const tieneTaller = db.mantenimientos.some(y=>y.fecha===str);
                 const notaExistente = db.notasCalendario.some(n=>n.fecha===str);
 
                 const esHoy = str === new Date().toISOString().split('T')[0];
@@ -629,7 +767,8 @@
                     <div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})">
                         <span class="text-xs md:text-sm font-bold text-gray-800">${d}</span>
                         ${p ? '<span class="flex items-center gap-0.5 text-[9px] font-black text-red-700"><i class="fa-solid fa-ban text-[8px]"></i>P&P</span>':''}
-                        ${reg ? '<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>':''}
+                        ${tieneProducido ? '<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>':''}
+                        ${tieneTaller ? '<i class="fa-solid fa-screwdriver-wrench absolute top-1 left-1 text-[9px] text-orange-500"></i>':''}
                         ${notaExistente ? '<i class="fa-solid fa-comment absolute bottom-1 right-1 text-[10px] text-violet-500"></i>':''}
                     </div>`;
             }
@@ -649,7 +788,7 @@
             });
 
             db.registrosDiarios.filter(x=>x.fecha===f).forEach(x => { h += `<div class="bg-emerald-50 rounded-lg p-2.5 mt-2 text-xs"><strong class="text-emerald-700">Entrega:</strong> <span class="font-bold text-gray-900">${formatMoneda(x.entrega)}</span>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500 mt-1">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; h += `</div>`; });
-            db.mantenimientos.filter(y=>y.fecha===f).forEach(y => h += `<div class="bg-red-50 p-2.5 rounded-lg mt-1 text-xs font-bold text-red-800"><i class="fa-solid fa-wrench mr-1"></i>Taller: ${y.descripcion}</div>`);
+            db.mantenimientos.filter(y=>y.fecha===f).forEach(y => h += `<div class="bg-orange-50 p-2.5 rounded-lg mt-1 text-xs font-bold text-orange-800"><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Taller: ${y.descripcion}</div>`);
             
             document.getElementById('modal-contenido').innerHTML = h || '<p class="italic text-gray-400 text-center mt-2 py-2"><i class="fa-solid fa-circle-check text-2xl mb-2 block text-gray-300"></i>No hay registros hoy</p>';
             document.getElementById('dia-modal').classList.add('active');
@@ -658,11 +797,11 @@
                 const textoNota = document.getElementById('input-nota-dia').value;
                 if(!textoNota) return alert("Escribe una nota primero");
                 const btn = document.getElementById('btn-guardar-nota');
-                btn.innerText = "Guardando...";
+                btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerText = "Guardando...";
                 const { error } = await supabaseClient.from('notas_calendario').insert([{ fecha: diaSeleccionado, nota: textoNota }]);
                 if (!error) { showToast("Nota agregada"); await descargarDatos(); cerrarModal(); }
                 else { alert("Error al guardar: " + error.message); }
-                btn.innerText = "Guardar Nota";
+                btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerText = "Guardar Nota";
             };
         }
 
