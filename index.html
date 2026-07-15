@@ -238,7 +238,7 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <thead class="bg-gray-50 font-bold text-gray-500 text-xs uppercase tracking-wide">
-                                <tr><th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Motivo</th><th class="px-4 py-3 text-left">Valor</th></tr>
+                                <tr><th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Motivo</th><th class="px-4 py-3 text-left">Valor</th><th class="px-4 py-3 text-left">Acciones</th></tr>
                             </thead>
                             <tbody id="tabla-conductor-body" class="divide-y divide-gray-100"></tbody>
                         </table>
@@ -283,7 +283,7 @@
                             <thead class="bg-gray-50 font-bold text-gray-500 text-xs uppercase tracking-wide">
                                 <tr>
                                     <th class="px-4 py-3 text-left w-10"><input type="checkbox" id="check-todos-gastos" onchange="toggleSeleccionarTodosGastos(this.checked)" class="form-checkbox h-4 w-4 text-brand-500 rounded focus:ring-brand-400"></th>
-                                    <th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Detalle</th><th class="px-4 py-3 text-left">Valor</th>
+                                    <th class="px-4 py-3 text-left">Fecha</th><th class="px-4 py-3 text-left">Detalle</th><th class="px-4 py-3 text-left">Valor</th><th class="px-4 py-3 text-left">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-gastos-body" class="divide-y divide-gray-100"></tbody>
@@ -302,6 +302,11 @@
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                             <input type="number" inputmode="decimal" step="any" id="mant-valor" required placeholder="Costo Total" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Foto del recibo (opcional)</label>
+                            <input type="file" id="mant-adjunto" accept="image/*" capture="environment" onchange="previsualizarAdjuntoTaller(this)" class="w-full text-sm text-gray-600 border border-gray-200 bg-gray-50 rounded-lg py-2 px-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-brand-500 file:text-white file:text-xs file:font-bold file:cursor-pointer hover:file:bg-brand-600">
+                            <p id="mant-adjunto-preview" class="text-xs text-gray-400 mt-1.5 hidden"><i class="fa-solid fa-image mr-1"></i><span></span></p>
                         </div>
                         <button type="submit" class="w-full bg-gray-900 hover:bg-black active:bg-black text-white font-bold py-3 rounded-lg transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i>Guardar Mantenimiento</button>
                     </form>
@@ -381,6 +386,7 @@
         const SUPABASE_URL = "https://vcldtmwrxynwrowlorsa.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGR0bXdyeHlud3Jvd2xvcnNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI3NTIsImV4cCI6MjA5NDQyODc1Mn0.Nw-Jqq0d0x2-kAM0kYlqA6fLMQT9jV4Z-em1CQ-SZBg";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const BUCKET_RECIBOS = "recibos-taller"; // Bucket de Supabase Storage para las fotos de recibos del taller
 
         let db = { 
             registrosDiarios: [], 
@@ -591,8 +597,8 @@
 
         function renderListaGastosAhorro() {
             const tbody = document.getElementById('tabla-conductor-body'); tbody.innerHTML = '';
-            if (db.gastosAhorro.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-gray-400 italic"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>No hay retiros registrados.</td></tr>'; return; }
-            db.gastosAhorro.forEach(g => tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors"><td class="px-4 py-3 font-bold whitespace-nowrap">${g.fecha}</td><td class="px-4 py-3">${g.motivo}</td><td class="px-4 py-3 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(g.valor)}</td></tr>`);
+            if (db.gastosAhorro.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 italic"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>No hay retiros registrados.</td></tr>'; return; }
+            db.gastosAhorro.forEach(g => tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors"><td class="px-4 py-3 font-bold whitespace-nowrap">${g.fecha}</td><td class="px-4 py-3">${g.motivo}</td><td class="px-4 py-3 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(g.valor)}</td><td class="px-4 py-3">${g.id!=null ? `<button onclick="eliminarGastoAhorro(${g.id})" class="text-gray-400 hover:text-red-600" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`);
         }
 
         // --- GESTIÓN GASTOS VEHÍCULO ---
@@ -647,8 +653,8 @@
         function renderListaGastos() {
             const tbody = document.getElementById('tabla-gastos-body'); tbody.innerHTML = '';
             let lista = [];
-            db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => lista.push({ f: r.fecha, d: r.imprevisto_desc, v: r.imprevisto_valor, t: 'Extras' }));
-            db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller' }));
+            db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => lista.push({ f: r.fecha, d: r.imprevisto_desc, v: r.imprevisto_valor, t: 'Extras', url: null, id: r.id }));
+            db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller', url: m.anexo_url || null, id: m.id }));
             lista.sort((a, b) => new Date(b.f) - new Date(a.f));
             gastosListaCompleta = lista;
 
@@ -656,16 +662,29 @@
             gastosListaFiltrada = filtrada;
 
             if (filtrada.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center italic text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Sin gastos en el rango seleccionado</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center italic text-gray-400"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Sin gastos en el rango seleccionado</td></tr>';
             } else {
                 filtrada.forEach(i => {
                     const clave = claveGasto(i);
                     const marcado = gastosSeleccionados.has(clave) ? 'checked' : '';
+                    const recibo = i.url ? `<a href="${i.url}" target="_blank" rel="noopener" class="ml-1.5 text-brand-600 hover:text-brand-700" title="Ver recibo"><i class="fa-solid fa-receipt"></i></a>` : '';
+                    let acciones = '';
+                    if (i.id != null) {
+                        if (i.t === 'Taller') {
+                            acciones += i.url
+                                ? `<button onclick="quitarFotoMantenimiento(${i.id}, '${i.url}')" class="text-gray-400 hover:text-red-600 mr-2" title="Quitar foto"><i class="fa-solid fa-image-slash"></i></button>`
+                                : `<button onclick="adjuntarFotoMantenimiento(${i.id})" class="text-gray-400 hover:text-brand-600 mr-2" title="Adjuntar foto"><i class="fa-solid fa-camera"></i></button>`;
+                            acciones += `<button onclick="eliminarMantenimiento(${i.id}, ${i.url ? `'${i.url}'` : 'null'})" class="text-gray-400 hover:text-red-600" title="Eliminar"><i class="fa-solid fa-trash"></i></button>`;
+                        } else {
+                            acciones += `<button onclick="quitarGastoExtra(${i.id})" class="text-gray-400 hover:text-red-600" title="Quitar este gasto extra"><i class="fa-solid fa-trash"></i></button>`;
+                        }
+                    }
                     tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-4 py-2.5"><input type="checkbox" ${marcado} onchange="toggleSeleccionGasto('${clave.replace(/'/g, "\\'")}')" class="form-checkbox h-4 w-4 text-brand-500 rounded focus:ring-brand-400"></td>
                         <td class="px-4 py-2.5 font-bold whitespace-nowrap">${i.f}</td>
-                        <td class="px-4 py-2.5">${i.d}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td>
+                        <td class="px-4 py-2.5">${i.d}${recibo}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td>
                         <td class="px-4 py-2.5 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(i.v)}</td>
+                        <td class="px-4 py-2.5 whitespace-nowrap">${acciones}</td>
                     </tr>`;
                 });
             }
@@ -690,14 +709,47 @@
             btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
         }
 
+        function previsualizarAdjuntoTaller(input) {
+            const p = document.getElementById('mant-adjunto-preview');
+            if (input.files && input.files[0]) {
+                p.querySelector('span').innerText = input.files[0].name;
+                p.classList.remove('hidden');
+            } else {
+                p.classList.add('hidden');
+            }
+        }
+
         async function guardarMantenimiento(e) {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const textoOriginal = btn.innerHTML;
-            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
-            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0 };
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed');
+
+            const archivo = document.getElementById('mant-adjunto').files[0];
+            let anexoUrl = null;
+
+            if (archivo) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Subiendo foto...';
+                const nombreArchivo = `${Date.now()}_${archivo.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const { error: errorSubida } = await supabaseClient.storage.from(BUCKET_RECIBOS).upload(nombreArchivo, archivo);
+                if (errorSubida) {
+                    alert("No se pudo subir la foto del recibo: " + errorSubida.message + "\n\nEl mantenimiento se guardará sin el anexo.");
+                } else {
+                    const { data: urlData } = supabaseClient.storage.from(BUCKET_RECIBOS).getPublicUrl(nombreArchivo);
+                    anexoUrl = urlData?.publicUrl || null;
+                }
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
+            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0, anexo_url: anexoUrl };
             const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
-            if (!error) { showToast("Mantenimiento guardado"); document.getElementById('form-mantenimiento').reset(); document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0]; await descargarDatos(); }
+            if (!error) {
+                showToast("Mantenimiento guardado");
+                document.getElementById('form-mantenimiento').reset();
+                document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
+                document.getElementById('mant-adjunto-preview').classList.add('hidden');
+                await descargarDatos();
+            }
             else { alert("Error al guardar: " + error.message); }
             btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
         }
@@ -784,11 +836,29 @@
             if(fes) h += '<div class="bg-green-100 text-green-800 p-2.5 rounded-lg mb-2 text-center text-xs font-bold"><i class="fa-solid fa-flag mr-1"></i>Festivo Nacional</div>';
             
             db.notasCalendario.filter(n=>n.fecha===f).forEach(n => {
-                h += `<div class="bg-violet-50 border-l-2 border-violet-500 p-2.5 rounded-lg mt-2 text-xs font-medium text-violet-800"><i class="fa-solid fa-comment-dots mr-1"></i> ${n.nota}</div>`;
+                h += `<div class="bg-violet-50 border-l-2 border-violet-500 p-2.5 rounded-lg mt-2 text-xs font-medium text-violet-800 flex justify-between items-start gap-2"><span><i class="fa-solid fa-comment-dots mr-1"></i> ${n.nota}</span>${n.id!=null ? `<button onclick="eliminarNota(${n.id})" class="text-violet-400 hover:text-red-600 shrink-0" title="Eliminar nota"><i class="fa-solid fa-trash"></i></button>` : ''}</div>`;
             });
 
-            db.registrosDiarios.filter(x=>x.fecha===f).forEach(x => { h += `<div class="bg-emerald-50 rounded-lg p-2.5 mt-2 text-xs"><strong class="text-emerald-700">Entrega:</strong> <span class="font-bold text-gray-900">${formatMoneda(x.entrega)}</span>`; if(x.imprevisto_valor>0) h += `<p class="text-red-500 mt-1">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>`; h += `</div>`; });
-            db.mantenimientos.filter(y=>y.fecha===f).forEach(y => h += `<div class="bg-orange-50 p-2.5 rounded-lg mt-1 text-xs font-bold text-orange-800"><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Taller: ${y.descripcion}</div>`);
+            db.registrosDiarios.filter(x=>x.fecha===f).forEach(x => {
+                h += `<div class="bg-emerald-50 rounded-lg p-2.5 mt-2 text-xs">
+                    <div class="flex justify-between items-start gap-2">
+                        <div><strong class="text-emerald-700">Entrega:</strong> <span class="font-bold text-gray-900">${formatMoneda(x.entrega)}</span></div>
+                        ${x.id!=null ? `<button onclick="eliminarRegistroDiario(${x.id})" class="text-emerald-500 hover:text-red-600 shrink-0" title="Eliminar registro de entrega"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>`;
+                if(x.imprevisto_valor>0) h += `<div class="flex justify-between items-center mt-1"><p class="text-red-500">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>${x.id!=null ? `<button onclick="quitarGastoExtra(${x.id})" class="text-red-400 hover:text-red-700 ml-2 shrink-0" title="Quitar solo este gasto extra"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
+                h += `</div>`;
+            });
+            db.mantenimientos.filter(y=>y.fecha===f).forEach(y => {
+                h += `<div class="bg-orange-50 p-2.5 rounded-lg mt-1 text-xs font-bold text-orange-800">
+                    <div class="flex justify-between items-start gap-2">
+                        <span><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Taller: ${y.descripcion}</span>
+                        ${y.id!=null ? `<button onclick="eliminarMantenimiento(${y.id}, ${y.anexo_url ? `'${y.anexo_url}'` : 'null'})" class="text-orange-400 hover:text-red-600 shrink-0" title="Eliminar registro de taller"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
+                    <div class="mt-1 font-normal">
+                        ${y.anexo_url ? `<a href="${y.anexo_url}" target="_blank" rel="noopener" class="text-orange-600 underline"><i class="fa-solid fa-receipt mr-0.5"></i>Ver recibo</a> ${y.id!=null ? `<button onclick="quitarFotoMantenimiento(${y.id}, '${y.anexo_url}')" class="ml-2 text-orange-500 hover:text-red-600" title="Quitar foto"><i class="fa-solid fa-image-slash"></i></button>` : ''}` : (y.id!=null ? `<button onclick="adjuntarFotoMantenimiento(${y.id})" class="text-orange-600 underline"><i class="fa-solid fa-camera mr-0.5"></i>Adjuntar foto</button>` : '')}
+                    </div>
+                </div>`;
+            });
             
             document.getElementById('modal-contenido').innerHTML = h || '<p class="italic text-gray-400 text-center mt-2 py-2"><i class="fa-solid fa-circle-check text-2xl mb-2 block text-gray-300"></i>No hay registros hoy</p>';
             document.getElementById('dia-modal').classList.add('active');
@@ -807,6 +877,71 @@
 
         function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+
+        // --- ELIMINAR REGISTROS Y GESTIONAR FOTOS (sin entrar a Supabase) ---
+        async function eliminarRegistroDiario(id) {
+            if (!confirm("¿Eliminar este registro de entrega del día? Esta acción no se puede deshacer.")) return;
+            const { error } = await supabaseClient.from('registros_diarios').delete().eq('id', id);
+            if (!error) { showToast("Registro eliminado"); await descargarDatos(); cerrarModal(); }
+            else alert("Error al eliminar: " + error.message);
+        }
+
+        async function quitarGastoExtra(id) {
+            if (!confirm("¿Quitar este gasto extra del registro? El resto del registro del día (entrega y ahorro) se mantiene.")) return;
+            const { error } = await supabaseClient.from('registros_diarios').update({ imprevisto_desc: '', imprevisto_valor: 0 }).eq('id', id);
+            if (!error) { showToast("Gasto extra eliminado"); await descargarDatos(); }
+            else alert("Error al eliminar: " + error.message);
+        }
+
+        async function eliminarMantenimiento(id, anexoUrl) {
+            if (!confirm("¿Eliminar este registro de taller? Esta acción no se puede deshacer.")) return;
+            const { error } = await supabaseClient.from('mantenimientos').delete().eq('id', id);
+            if (!error) {
+                if (anexoUrl) { try { await supabaseClient.storage.from(BUCKET_RECIBOS).remove([anexoUrl.split('/').pop()]); } catch(_) {} }
+                showToast("Registro de taller eliminado"); await descargarDatos(); cerrarModal();
+            } else alert("Error al eliminar: " + error.message);
+        }
+
+        async function eliminarGastoAhorro(id) {
+            if (!confirm("¿Eliminar este retiro del ahorro del conductor?")) return;
+            const { error } = await supabaseClient.from('gastos_ahorro').delete().eq('id', id);
+            if (!error) { showToast("Retiro eliminado"); await descargarDatos(); }
+            else alert("Error al eliminar: " + error.message);
+        }
+
+        async function eliminarNota(id) {
+            if (!confirm("¿Eliminar esta nota?")) return;
+            const { error } = await supabaseClient.from('notas_calendario').delete().eq('id', id);
+            if (!error) { showToast("Nota eliminada"); await descargarDatos(); }
+            else alert("Error al eliminar: " + error.message);
+        }
+
+        function adjuntarFotoMantenimiento(id) {
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = 'image/*';
+            input.onchange = async () => {
+                const archivo = input.files[0];
+                if (!archivo) return;
+                showToast("Subiendo foto...");
+                const nombreArchivo = `${Date.now()}_${archivo.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const { error: errorSubida } = await supabaseClient.storage.from(BUCKET_RECIBOS).upload(nombreArchivo, archivo);
+                if (errorSubida) { alert("No se pudo subir la foto: " + errorSubida.message); return; }
+                const { data: urlData } = supabaseClient.storage.from(BUCKET_RECIBOS).getPublicUrl(nombreArchivo);
+                const { error } = await supabaseClient.from('mantenimientos').update({ anexo_url: urlData?.publicUrl || null }).eq('id', id);
+                if (!error) { showToast("Foto adjuntada"); await descargarDatos(); }
+                else alert("Error al guardar la foto: " + error.message);
+            };
+            input.click();
+        }
+
+        async function quitarFotoMantenimiento(id, anexoUrl) {
+            if (!confirm("¿Quitar la foto de este recibo? El registro de taller se mantiene, solo se quita el anexo.")) return;
+            const { error } = await supabaseClient.from('mantenimientos').update({ anexo_url: null }).eq('id', id);
+            if (!error) {
+                if (anexoUrl) { try { await supabaseClient.storage.from(BUCKET_RECIBOS).remove([anexoUrl.split('/').pop()]); } catch(_) {} }
+                showToast("Foto quitada"); await descargarDatos();
+            } else alert("Error al quitar la foto: " + error.message);
+        }
 
         function exportarCSV() {
             let csv = "\uFEFFFecha,Tipo,Detalle,Valor\n";
