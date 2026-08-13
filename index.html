@@ -303,6 +303,19 @@
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                             <input type="number" inputmode="decimal" step="any" id="mant-valor" required placeholder="Costo Total" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
                         </div>
+                        <div class="border-t pt-3">
+                            <label class="flex items-center space-x-3 cursor-pointer select-none">
+                                <input type="checkbox" id="check-cambio-aceite" onchange="toggleKilometraje()" class="form-checkbox h-5 w-5 text-brand-500 rounded focus:ring-brand-400">
+                                <span class="text-gray-700 font-bold text-sm">¿Es cambio de aceite?</span>
+                            </label>
+                        </div>
+                        <div id="seccion-kilometraje" class="hidden bg-amber-50/60 p-4 rounded-lg border border-amber-100">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Kilometraje del cambio</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-gauge-high absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <input type="number" inputmode="numeric" id="mant-kilometraje" placeholder="Ej: 45000" class="w-full border border-gray-200 bg-white rounded-lg py-2.5 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                            </div>
+                        </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Foto del recibo (opcional)</label>
                             <input type="file" id="mant-adjunto" accept="image/*" capture="environment" onchange="previsualizarAdjuntoTaller(this)" class="w-full text-sm text-gray-600 border border-gray-200 bg-gray-50 rounded-lg py-2 px-2.5 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-brand-500 file:text-white file:text-xs file:font-bold file:cursor-pointer hover:file:bg-brand-600">
@@ -369,6 +382,46 @@
             </div>
             
             <button onclick="cerrarModal()" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 py-2.5 rounded-lg font-bold transition text-gray-700">Cerrar Ventana</button>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR TALLER -->
+    <div id="editar-mantenimiento-modal" class="modal" onclick="if(event.target===this) cerrarModalEditar()">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 relative shadow-2xl">
+            <h3 class="font-bold border-b border-gray-100 pb-3 mb-4 uppercase text-gray-800 flex items-center gap-2"><i class="fa-solid fa-pen-to-square text-orange-500"></i>Editar Registro de Taller</h3>
+            <form id="form-editar-mantenimiento" onsubmit="guardarEdicionMantenimiento(event)" class="space-y-4">
+                <input type="hidden" id="editar-mant-id">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Fecha</label>
+                    <input type="date" id="editar-mant-fecha" required class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Descripción</label>
+                    <input type="text" id="editar-mant-desc" required class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Costo Total</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                        <input type="number" inputmode="decimal" step="any" id="editar-mant-valor" required class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                    </div>
+                </div>
+                <div class="border-t pt-3">
+                    <label class="flex items-center space-x-3 cursor-pointer select-none">
+                        <input type="checkbox" id="editar-check-aceite" onchange="toggleKmEditar()" class="form-checkbox h-5 w-5 text-brand-500 rounded focus:ring-brand-400">
+                        <span class="text-gray-700 font-bold text-sm">¿Es cambio de aceite?</span>
+                    </label>
+                </div>
+                <div id="editar-seccion-km" class="hidden bg-amber-50/60 p-4 rounded-lg border border-amber-100">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Kilometraje del cambio</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-gauge-high absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="number" inputmode="numeric" id="editar-mant-km" placeholder="Ej: 45000" class="w-full border border-gray-200 bg-white rounded-lg py-2.5 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-floppy-disk"></i>Guardar Cambios</button>
+            </form>
+            <button onclick="cerrarModalEditar()" class="mt-3 w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 py-2.5 rounded-lg font-bold transition text-gray-700">Cancelar</button>
         </div>
     </div>
 
@@ -654,7 +707,7 @@
             const tbody = document.getElementById('tabla-gastos-body'); tbody.innerHTML = '';
             let lista = [];
             db.registrosDiarios.filter(r => r.imprevisto_valor > 0).forEach(r => lista.push({ f: r.fecha, d: r.imprevisto_desc, v: r.imprevisto_valor, t: 'Extras', url: null, id: r.id }));
-            db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller', url: m.anexo_url || null, id: m.id }));
+            db.mantenimientos.forEach(m => lista.push({ f: m.fecha, d: m.descripcion, v: m.valor, t: 'Taller', url: m.anexo_url || null, id: m.id, km: m.kilometraje }));
             lista.sort((a, b) => new Date(b.f) - new Date(a.f));
             gastosListaCompleta = lista;
 
@@ -668,9 +721,11 @@
                     const clave = claveGasto(i);
                     const marcado = gastosSeleccionados.has(clave) ? 'checked' : '';
                     const recibo = i.url ? `<a href="${i.url}" target="_blank" rel="noopener" class="ml-1.5 text-brand-600 hover:text-brand-700" title="Ver recibo"><i class="fa-solid fa-receipt"></i></a>` : '';
+                    const km = (i.km !== null && i.km !== undefined && i.km !== '') ? `<span class="ml-1.5 text-[10px] font-bold text-gray-400"><i class="fa-solid fa-gauge-high"></i> ${Number(i.km).toLocaleString('es-CO')} km</span>` : '';
                     let acciones = '';
                     if (i.id != null) {
                         if (i.t === 'Taller') {
+                            acciones += `<button onclick="abrirEditarMantenimiento(${i.id})" class="text-gray-400 hover:text-brand-600 mr-2" title="Editar"><i class="fa-solid fa-pen"></i></button>`;
                             acciones += i.url
                                 ? `<button onclick="quitarFotoMantenimiento(${i.id}, '${i.url}')" class="text-gray-400 hover:text-red-600 mr-2" title="Quitar foto"><i class="fa-solid fa-image-slash"></i></button>`
                                 : `<button onclick="adjuntarFotoMantenimiento(${i.id})" class="text-gray-400 hover:text-brand-600 mr-2" title="Adjuntar foto"><i class="fa-solid fa-camera"></i></button>`;
@@ -682,7 +737,7 @@
                     tbody.innerHTML += `<tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-4 py-2.5"><input type="checkbox" ${marcado} onchange="toggleSeleccionGasto('${clave.replace(/'/g, "\\'")}')" class="form-checkbox h-4 w-4 text-brand-500 rounded focus:ring-brand-400"></td>
                         <td class="px-4 py-2.5 font-bold whitespace-nowrap">${i.f}</td>
-                        <td class="px-4 py-2.5">${i.d}${recibo}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td>
+                        <td class="px-4 py-2.5">${i.d}${recibo}${km}<br><span class="text-[10px] uppercase font-bold text-gray-400">${i.t}</span></td>
                         <td class="px-4 py-2.5 text-red-600 font-bold whitespace-nowrap">-${formatMoneda(i.v)}</td>
                         <td class="px-4 py-2.5 whitespace-nowrap">${acciones}</td>
                     </tr>`;
@@ -741,13 +796,15 @@
             }
 
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
-            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0, anexo_url: anexoUrl };
+            const esCambioAceite = document.getElementById('check-cambio-aceite').checked;
+            const nuevo = { fecha: document.getElementById('mant-fecha').value, descripcion: document.getElementById('mant-desc').value, valor: parseFloat(document.getElementById('mant-valor').value) || 0, anexo_url: anexoUrl, kilometraje: esCambioAceite ? (parseFloat(document.getElementById('mant-kilometraje').value) || null) : null };
             const { error } = await supabaseClient.from('mantenimientos').insert([nuevo]);
             if (!error) {
                 showToast("Mantenimiento guardado");
                 document.getElementById('form-mantenimiento').reset();
                 document.getElementById('mant-fecha').value = new Date().toISOString().split('T')[0];
                 document.getElementById('mant-adjunto-preview').classList.add('hidden');
+                toggleKilometraje();
                 await descargarDatos();
             }
             else { alert("Error al guardar: " + error.message); }
@@ -755,6 +812,7 @@
         }
 
         function toggleImprevisto() { document.getElementById('seccion-imprevisto').classList.toggle('hidden', !document.getElementById('check-imprevisto').checked); }
+        function toggleKilometraje() { document.getElementById('seccion-kilometraje').classList.toggle('hidden', !document.getElementById('check-cambio-aceite').checked); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.className="show"; setTimeout(()=>t.className="",3000); }
         function formatMoneda(v) { return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',minimumFractionDigits:0}).format(v); }
 
@@ -849,10 +907,14 @@
                 h += `</div>`;
             });
             db.mantenimientos.filter(y=>y.fecha===f).forEach(y => {
+                const kmTexto = (y.kilometraje !== null && y.kilometraje !== undefined && y.kilometraje !== '') ? ` · <i class="fa-solid fa-gauge-high"></i> ${Number(y.kilometraje).toLocaleString('es-CO')} km` : '';
                 h += `<div class="bg-orange-50 p-2.5 rounded-lg mt-1 text-xs font-bold text-orange-800">
                     <div class="flex justify-between items-start gap-2">
-                        <span><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Taller: ${y.descripcion}</span>
-                        ${y.id!=null ? `<button onclick="eliminarMantenimiento(${y.id}, ${y.anexo_url ? `'${y.anexo_url}'` : 'null'})" class="text-orange-400 hover:text-red-600 shrink-0" title="Eliminar registro de taller"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        <span><i class="fa-solid fa-screwdriver-wrench mr-1"></i>Taller: ${y.descripcion}${kmTexto}</span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            ${y.id!=null ? `<button onclick="abrirEditarMantenimiento(${y.id})" class="text-orange-400 hover:text-brand-600" title="Editar"><i class="fa-solid fa-pen"></i></button>` : ''}
+                            ${y.id!=null ? `<button onclick="eliminarMantenimiento(${y.id}, ${y.anexo_url ? `'${y.anexo_url}'` : 'null'})" class="text-orange-400 hover:text-red-600" title="Eliminar registro de taller"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
                     </div>
                     <div class="mt-1 font-normal">
                         ${y.anexo_url ? `<a href="${y.anexo_url}" target="_blank" rel="noopener" class="text-orange-600 underline"><i class="fa-solid fa-receipt mr-0.5"></i>Ver recibo</a> ${y.id!=null ? `<button onclick="quitarFotoMantenimiento(${y.id}, '${y.anexo_url}')" class="ml-2 text-orange-500 hover:text-red-600" title="Quitar foto"><i class="fa-solid fa-image-slash"></i></button>` : ''}` : (y.id!=null ? `<button onclick="adjuntarFotoMantenimiento(${y.id})" class="text-orange-600 underline"><i class="fa-solid fa-camera mr-0.5"></i>Adjuntar foto</button>` : '')}
@@ -876,7 +938,43 @@
         }
 
         function cerrarModal() { document.getElementById('dia-modal').classList.remove('active'); }
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
+        function cerrarModalEditar() { document.getElementById('editar-mantenimiento-modal').classList.remove('active'); }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { cerrarModal(); cerrarModalEditar(); } });
+
+        function toggleKmEditar() { document.getElementById('editar-seccion-km').classList.toggle('hidden', !document.getElementById('editar-check-aceite').checked); }
+
+        function abrirEditarMantenimiento(id) {
+            const m = db.mantenimientos.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('editar-mant-id').value = m.id;
+            document.getElementById('editar-mant-fecha').value = m.fecha;
+            document.getElementById('editar-mant-desc').value = m.descripcion;
+            document.getElementById('editar-mant-valor').value = m.valor;
+            const tieneKm = m.kilometraje !== null && m.kilometraje !== undefined && m.kilometraje !== '';
+            document.getElementById('editar-check-aceite').checked = tieneKm;
+            document.getElementById('editar-mant-km').value = tieneKm ? m.kilometraje : '';
+            document.getElementById('editar-seccion-km').classList.toggle('hidden', !tieneKm);
+            document.getElementById('editar-mantenimiento-modal').classList.add('active');
+        }
+
+        async function guardarEdicionMantenimiento(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
+            const id = document.getElementById('editar-mant-id').value;
+            const esCambioAceite = document.getElementById('editar-check-aceite').checked;
+            const payload = {
+                fecha: document.getElementById('editar-mant-fecha').value,
+                descripcion: document.getElementById('editar-mant-desc').value,
+                valor: parseFloat(document.getElementById('editar-mant-valor').value) || 0,
+                kilometraje: esCambioAceite ? (parseFloat(document.getElementById('editar-mant-km').value) || null) : null
+            };
+            const { error } = await supabaseClient.from('mantenimientos').update(payload).eq('id', id);
+            if (!error) { showToast("Registro actualizado"); cerrarModalEditar(); await descargarDatos(); }
+            else { alert("Error al actualizar: " + error.message); }
+            btn.disabled = false; btn.classList.remove('opacity-60','cursor-not-allowed'); btn.innerHTML = textoOriginal;
+        }
 
         // --- ELIMINAR REGISTROS Y GESTIONAR FOTOS (sin entrar a Supabase) ---
         async function eliminarRegistroDiario(id) {
