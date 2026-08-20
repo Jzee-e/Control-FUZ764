@@ -122,6 +122,7 @@
                         <button data-tab="calendario" onclick="switchTab('calendario')" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-800 hover:bg-white/40 transition">Calendario</button>
                     </div>
                     <div class="flex space-x-2">
+                        <button onclick="actualizarManualmente()" aria-label="Actualizar datos" id="btn-refrescar" class="bg-white/60 hover:bg-white/90 text-gray-900 p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-rotate"></i></button>
                         <button onclick="switchTab('ajustes')" aria-label="Ajustes" class="bg-gray-900/80 hover:bg-gray-900 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-gear"></i></button>
                         <button onclick="cerrarSesion()" aria-label="Cerrar sesión" class="bg-red-600 hover:bg-red-700 text-white p-2.5 md:px-3 rounded-lg text-sm transition shadow-sm"><i class="fa-solid fa-power-off"></i></button>
                     </div>
@@ -201,6 +202,17 @@
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
                                 <input type="number" inputmode="decimal" step="any" id="diario-ahorro" required value="5000" placeholder="0" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-0.5">Conductor</label>
+                            <select id="diario-conductor" class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
+                                <option value="1">Conductor 1</option>
+                                <option value="2">Conductor 2</option>
+                                <option value="3">Conductor 3</option>
+                                <option value="4">Conductor 4</option>
+                                <option value="5">Conductor 5</option>
+                                <option value="6">Conductor 6</option>
+                            </select>
                         </div>
                         <div class="border-t pt-3">
                             <label class="flex items-center space-x-3 cursor-pointer select-none">
@@ -344,7 +356,7 @@
                     <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t border-gray-100 text-[10px] font-semibold text-gray-500">
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-red-100 border border-red-400 inline-block"></span>Pico y Placa</span>
                         <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-green-50 border border-green-300 inline-block"></span>Festivo</span>
-                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>Con producido</span>
+                        <span id="leyenda-conductores" class="contents"></span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-screwdriver-wrench text-orange-500 text-[10px]"></i>Evento de taller</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-comment text-violet-500 text-[10px]"></i>Con nota</span>
                     </div>
@@ -364,6 +376,19 @@
                         
                         <button type="submit" class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-bold py-3 rounded-lg transition mt-4 shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-cloud-arrow-up"></i>Guardar Fechas en la Nube</button>
                     </form>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-soft p-6 border-t-4 border-sky-500 mt-6">
+                    <h3 class="text-sm font-bold text-gray-700 uppercase mb-1 flex items-center gap-2"><i class="fa-solid fa-id-card text-sky-500"></i>Conductor Actual</h3>
+                    <p class="text-xs text-gray-500 mb-4">Se usa para marcar automáticamente quién hizo cada registro en "Diario", y para colorear el calendario. Cámbialo aquí cuando vuelva a haber un cambio de conductor.</p>
+                    <div class="flex items-center justify-center gap-5">
+                        <button type="button" onclick="cambiarConductorActual(-1)" class="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 font-bold text-xl text-gray-700 transition">−</button>
+                        <div class="text-center min-w-[9rem]">
+                            <span class="w-3 h-3 rounded-full inline-block mr-1" id="conductor-actual-punto"></span>
+                            <span class="text-2xl font-extrabold text-gray-800">Conductor <span id="conductor-actual-numero">2</span></span>
+                        </div>
+                        <button type="button" onclick="cambiarConductorActual(1)" class="w-11 h-11 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 font-bold text-xl text-gray-700 transition">+</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -446,8 +471,18 @@
             mantenimientos: [], 
             gastosAhorro: [], 
             notasCalendario: [],
-            configuracion: { soat: '', tecno: '', gas: '', extra: '' } // Nuevo estado para config
+            configuracion: { soat: '', tecno: '', gas: '', extra: '', conductorActual: 2 } // Nuevo estado para config
         };
+        // Paleta de identificación por conductor (se extiende sola si en el futuro hay un Conductor 3, 4, etc.)
+        const PALETA_CONDUCTORES = [
+            { dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' }, // Conductor 1
+            { dot: 'bg-sky-500',     bg: 'bg-sky-50',     text: 'text-sky-700' },     // Conductor 2
+            { dot: 'bg-pink-500',    bg: 'bg-pink-50',    text: 'text-pink-700' },    // Conductor 3
+            { dot: 'bg-amber-500',   bg: 'bg-amber-50',   text: 'text-amber-700' },   // Conductor 4
+            { dot: 'bg-indigo-500',  bg: 'bg-indigo-50',  text: 'text-indigo-700' },  // Conductor 5
+            { dot: 'bg-teal-500',    bg: 'bg-teal-50',    text: 'text-teal-700' }     // Conductor 6
+        ];
+        function colorConductor(n) { const i = ((parseInt(n) || 1) - 1) % PALETA_CONDUCTORES.length; return PALETA_CONDUCTORES[i]; }
         let usuarioActual = null;
         let diaSeleccionado = null;
         let appYaCargada = false; // Evita recargar todos los datos cada vez que el navegador recupera el foco
@@ -476,6 +511,17 @@
                 usuarioActual = null; appYaCargada = false; mostrarLogin();
             }
         });
+
+        async function actualizarManualmente() {
+            const btn = document.getElementById('btn-refrescar');
+            const icono = btn.querySelector('i');
+            icono.classList.add('fa-spin');
+            btn.disabled = true;
+            await descargarDatos();
+            icono.classList.remove('fa-spin');
+            btn.disabled = false;
+            showToast("Datos actualizados");
+        }
 
         function mostrarLogin() { document.getElementById('auth-container').classList.remove('hidden'); document.getElementById('app-container').classList.add('hidden'); }
         
@@ -526,12 +572,15 @@
             
             // Si hay datos en la nube, los guardamos en el estado local, si no, lo dejamos vacío
             if (config) {
-                db.configuracion = { soat: config.soat || '', tecno: config.tecno || '', gas: config.gas || '', extra: config.extra || '' };
+                db.configuracion = { soat: config.soat || '', tecno: config.tecno || '', gas: config.gas || '', extra: config.extra || '', conductorActual: config.conductor_actual || 2 };
                 // Llenar las casillas de la pestaña de ajustes
                 document.getElementById('conf-soat').value = db.configuracion.soat;
                 document.getElementById('conf-tecno').value = db.configuracion.tecno;
                 document.getElementById('conf-gas').value = db.configuracion.gas;
                 document.getElementById('conf-extra').value = db.configuracion.extra;
+                document.getElementById('conductor-actual-numero').innerText = db.configuracion.conductorActual;
+                document.getElementById('conductor-actual-punto').className = `w-3 h-3 rounded-full inline-block mr-1 ${colorConductor(db.configuracion.conductorActual).dot}`;
+                document.getElementById('diario-conductor').value = db.configuracion.conductorActual;
             }
             
             actualizarDashboard();
@@ -757,7 +806,7 @@
             const textoOriginal = btn.innerHTML;
             btn.disabled = true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Guardando...';
             const check = document.getElementById('check-imprevisto').checked;
-            const nuevo = { fecha: document.getElementById('diario-fecha').value, entrega: parseFloat(document.getElementById('diario-entrega').value) || 0, ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0, imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '', imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0 };
+            const nuevo = { fecha: document.getElementById('diario-fecha').value, entrega: parseFloat(document.getElementById('diario-entrega').value) || 0, ahorro: parseFloat(document.getElementById('diario-ahorro').value) || 0, imprevisto_desc: check ? document.getElementById('imprevisto-desc').value : '', imprevisto_valor: check ? parseFloat(document.getElementById('imprevisto-valor').value) || 0 : 0, conductor: parseInt(document.getElementById('diario-conductor').value) || 1 };
             const { error } = await supabaseClient.from('registros_diarios').insert([nuevo]);
             if (!error) { showToast("Guardado"); document.getElementById('form-diario').reset(); document.getElementById('diario-fecha').value = new Date().toISOString().split('T')[0]; toggleImprevisto(); await descargarDatos(); }
             else { alert("Error al guardar: " + error.message); }
@@ -864,7 +913,9 @@
             for (let d=1; d<=dMes; d++) {
                 const f = new Date(aAct, mAct, d), str = `${aAct}-${String(mAct+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const p = tienePyP(f, str), fes = getFestivos(aAct).includes(str);
-                const tieneProducido = db.registrosDiarios.some(x=>x.fecha===str);
+                const registroDia = db.registrosDiarios.find(x=>x.fecha===str);
+                const tieneProducido = !!registroDia;
+                const colorPunto = registroDia ? colorConductor(registroDia.conductor).dot : 'bg-emerald-500';
                 const tieneTaller = db.mantenimientos.some(y=>y.fecha===str);
                 const notaExistente = db.notasCalendario.some(n=>n.fecha===str);
 
@@ -877,11 +928,15 @@
                     <div class="${cl}" onclick="abrirModalDia('${str}',${p},${fes})">
                         <span class="text-xs md:text-sm font-bold text-gray-800">${d}</span>
                         ${p ? '<span class="flex items-center gap-0.5 text-[9px] font-black text-red-700"><i class="fa-solid fa-ban text-[8px]"></i>P&P</span>':''}
-                        ${tieneProducido ? '<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>':''}
+                        ${tieneProducido ? `<span class="absolute top-1 right-1 w-1.5 h-1.5 ${colorPunto} rounded-full"></span>`:''}
                         ${tieneTaller ? '<i class="fa-solid fa-screwdriver-wrench absolute top-1 left-1 text-[9px] text-orange-500"></i>':''}
                         ${notaExistente ? '<i class="fa-solid fa-comment absolute bottom-1 right-1 text-[10px] text-violet-500"></i>':''}
                     </div>`;
             }
+
+            // Leyenda de conductores: solo se muestran los que tienen registros (más el conductor actual)
+            const conductoresPresentes = [...new Set([...db.registrosDiarios.map(x => parseInt(x.conductor) || 1), db.configuracion.conductorActual])].sort((a,b)=>a-b);
+            document.getElementById('leyenda-conductores').innerHTML = conductoresPresentes.map(n => `<span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${colorConductor(n).dot} inline-block"></span>Conductor ${n}${n === db.configuracion.conductorActual ? ' (actual)' : ''}</span>`).join('');
         }
 
         function abrirModalDia(f, pyp, fes) {
@@ -898,10 +953,11 @@
             });
 
             db.registrosDiarios.filter(x=>x.fecha===f).forEach(x => {
-                h += `<div class="bg-emerald-50 rounded-lg p-2.5 mt-2 text-xs">
+                const col = colorConductor(x.conductor);
+                h += `<div class="${col.bg} rounded-lg p-2.5 mt-2 text-xs">
                     <div class="flex justify-between items-start gap-2">
-                        <div><strong class="text-emerald-700">Entrega:</strong> <span class="font-bold text-gray-900">${formatMoneda(x.entrega)}</span></div>
-                        ${x.id!=null ? `<button onclick="eliminarRegistroDiario(${x.id})" class="text-emerald-500 hover:text-red-600 shrink-0" title="Eliminar registro de entrega"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        <div><strong class="${col.text}">Entrega:</strong> <span class="font-bold text-gray-900">${formatMoneda(x.entrega)}</span> <span class="ml-1 text-[9px] font-bold ${col.text} bg-white/70 px-1.5 py-0.5 rounded-full">Conductor ${x.conductor || 1}</span></div>
+                        ${x.id!=null ? `<button onclick="eliminarRegistroDiario(${x.id})" class="${col.text} hover:text-red-600 shrink-0" title="Eliminar registro de entrega"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>`;
                 if(x.imprevisto_valor>0) h += `<div class="flex justify-between items-center mt-1"><p class="text-red-500">⚠️ ${x.imprevisto_desc}: -${formatMoneda(x.imprevisto_valor)}</p>${x.id!=null ? `<button onclick="quitarGastoExtra(${x.id})" class="text-red-400 hover:text-red-700 ml-2 shrink-0" title="Quitar solo este gasto extra"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
                 h += `</div>`;
@@ -1039,6 +1095,21 @@
                 if (anexoUrl) { try { await supabaseClient.storage.from(BUCKET_RECIBOS).remove([anexoUrl.split('/').pop()]); } catch(_) {} }
                 showToast("Foto quitada"); await descargarDatos();
             } else alert("Error al quitar la foto: " + error.message);
+        }
+
+        async function cambiarConductorActual(delta) {
+            const nuevoNumero = Math.max(1, (parseInt(db.configuracion.conductorActual) || 1) + delta);
+            document.getElementById('conductor-actual-numero').innerText = nuevoNumero;
+            document.getElementById('conductor-actual-punto').className = `w-3 h-3 rounded-full inline-block mr-1 ${colorConductor(nuevoNumero).dot}`;
+            const { error } = await supabaseClient.from('configuracion_vehiculo').upsert({ id: 1, conductor_actual: nuevoNumero });
+            if (!error) {
+                db.configuracion.conductorActual = nuevoNumero;
+                document.getElementById('diario-conductor').value = nuevoNumero;
+                showToast(`Conductor actual: Conductor ${nuevoNumero}`);
+                renderCalendario();
+            } else {
+                alert("Error al actualizar el conductor actual: " + error.message);
+            }
         }
 
         function exportarCSV() {
