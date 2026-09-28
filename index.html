@@ -307,6 +307,33 @@
             <!-- TALLER -->
             <div id="view-mantenimiento" class="tab-content">
                 <h2 class="text-xl font-bold mb-4 text-gray-800 flex items-center"><i class="fa-solid fa-oil-can text-brand-500 mr-2"></i>Registro de Taller</h2>
+
+                <!-- RESUMEN DE CAMBIOS DE ACEITE -->
+                <div class="bg-white rounded-xl shadow-soft p-5 mb-4 border border-gray-100">
+                    <h3 class="text-sm font-bold text-gray-700 uppercase mb-1 flex items-center gap-2"><i class="fa-solid fa-gauge-high text-amber-500"></i>Resumen de Cambios de Aceite</h3>
+                    <p class="text-xs text-gray-500 mb-4">Calculado entre los dos últimos cambios de aceite con kilometraje registrado, usando días realmente trabajados.</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-amber-50 rounded-lg p-3">
+                            <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wide">Último cambio</p>
+                            <p class="text-lg font-extrabold text-gray-800 leading-tight" id="aceite-ultimo">—</p>
+                            <p class="text-[10px] text-gray-400" id="aceite-ultimo-fecha"></p>
+                        </div>
+                        <div class="bg-sky-50 rounded-lg p-3">
+                            <p class="text-[10px] text-sky-700 font-bold uppercase tracking-wide">Km recorridos</p>
+                            <p class="text-lg font-extrabold text-gray-800 leading-tight" id="aceite-km-recorridos">—</p>
+                        </div>
+                        <div class="bg-violet-50 rounded-lg p-3">
+                            <p class="text-[10px] text-violet-700 font-bold uppercase tracking-wide">Días trabajados</p>
+                            <p class="text-lg font-extrabold text-gray-800 leading-tight" id="aceite-dias-trabajados">—</p>
+                        </div>
+                        <div class="bg-emerald-50 rounded-lg p-3">
+                            <p class="text-[10px] text-emerald-700 font-bold uppercase tracking-wide">Prom. km/día</p>
+                            <p class="text-lg font-extrabold text-gray-800 leading-tight" id="aceite-promedio">—</p>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-3 italic" id="aceite-nota"></p>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-soft p-6">
                     <form id="form-mantenimiento" onsubmit="guardarMantenimiento(event)" class="space-y-4">
                         <input type="date" id="mant-fecha" required class="w-full border border-gray-200 bg-gray-50 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:bg-white">
@@ -588,6 +615,7 @@
             renderListaGastos();
             renderListaGastosAhorro();
             revisarDocumentos(); // Mostramos las alertas basándonos en los datos de la nube
+            actualizarResumenAceite();
             overlay.classList.add('hidden');
         }
 
@@ -750,6 +778,47 @@
             document.getElementById('gastos-total-filtrado').innerText = formatMoneda(totalFiltrado);
             document.getElementById('gastos-conteo-seleccionado').innerText = conteoSeleccionado;
             document.getElementById('gastos-total-seleccionado').innerText = formatMoneda(totalSeleccionado);
+        }
+
+        // --- RESUMEN DE CAMBIOS DE ACEITE (km recorridos entre cambios, días realmente trabajados, promedio) ---
+        function actualizarResumenAceite() {
+            const cambios = db.mantenimientos
+                .filter(m => m.kilometraje !== null && m.kilometraje !== undefined && m.kilometraje !== '')
+                .sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            const elUltimo = document.getElementById('aceite-ultimo');
+            const elUltimoFecha = document.getElementById('aceite-ultimo-fecha');
+            const elKm = document.getElementById('aceite-km-recorridos');
+            const elDias = document.getElementById('aceite-dias-trabajados');
+            const elProm = document.getElementById('aceite-promedio');
+            const elNota = document.getElementById('aceite-nota');
+            if (!elUltimo) return; // La pestaña de Taller aún no está en el DOM
+
+            if (cambios.length === 0) {
+                elUltimo.innerText = '—'; elUltimoFecha.innerText = '';
+                elKm.innerText = '—'; elDias.innerText = '—'; elProm.innerText = '—';
+                elNota.innerText = 'Aún no hay ningún cambio de aceite con kilometraje registrado.';
+                return;
+            }
+
+            const ultimo = cambios[cambios.length - 1];
+            elUltimo.innerText = `${Number(ultimo.kilometraje).toLocaleString('es-CO')} km`;
+            elUltimoFecha.innerText = ultimo.fecha;
+
+            if (cambios.length < 2) {
+                elKm.innerText = '—'; elDias.innerText = '—'; elProm.innerText = '—';
+                elNota.innerText = 'Registra el próximo cambio de aceite con su kilometraje para poder calcular el recorrido entre cambios.';
+                return;
+            }
+
+            const anterior = cambios[cambios.length - 2];
+            const kmRecorridos = Number(ultimo.kilometraje) - Number(anterior.kilometraje);
+            const diasTrabajados = db.registrosDiarios.filter(r => r.fecha > anterior.fecha && r.fecha <= ultimo.fecha).length;
+
+            elKm.innerText = `${kmRecorridos.toLocaleString('es-CO')} km`;
+            elDias.innerText = `${diasTrabajados} días`;
+            elProm.innerText = diasTrabajados > 0 ? `${Math.round(kmRecorridos / diasTrabajados).toLocaleString('es-CO')} km/día` : '—';
+            elNota.innerText = `Entre el cambio del ${anterior.fecha} (${Number(anterior.kilometraje).toLocaleString('es-CO')} km) y el del ${ultimo.fecha}.`;
         }
 
         function renderListaGastos() {
